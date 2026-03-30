@@ -1,0 +1,1505 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Follow-up Dashboard · Qózt</title>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap"
+        rel="stylesheet">
+    <style>
+        :root {
+            --bg: #f7f8f6;
+            --bg2: #ffffff;
+            --bg3: #f0f2ef;
+            --bg4: #e4e8e2;
+            --border: rgba(0, 0, 0, 0.07);
+            --border2: rgba(0, 0, 0, 0.13);
+            --green: #0e7a4e;
+            --green2: #12a368;
+            --green-bg: rgba(14, 122, 78, 0.08);
+            --green-bd: rgba(14, 122, 78, 0.2);
+            --amber: #b45309;
+            --amber-bg: rgba(180, 83, 9, 0.08);
+            --red: #b91c1c;
+            --red-bg: rgba(185, 28, 28, 0.08);
+            --blue: #1d4ed8;
+            --blue-bg: rgba(29, 78, 216, 0.08);
+            --text: #111a14;
+            --text2: #4a5e51;
+            --text3: #8fa896;
+            --font: 'Plus Jakarta Sans', sans-serif;
+            --mono: 'DM Mono', monospace;
+            --shadow: 0 1px 3px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04);
+            --shadow2: 0 4px 12px rgba(0, 0, 0, 0.08);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        html {
+            font-size: 14px;
+        }
+
+        body {
+            font-family: var(--font);
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+        }
+
+        ::-webkit-scrollbar {
+            width: 5px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--bg4);
+            border-radius: 99px;
+        }
+
+        /* ─── SIDEBAR ─── */
+        .sidebar {
+            position: fixed;
+            left: 0;
+            top: 0;
+            width: 224px;
+            height: 100vh;
+            background: var(--bg2);
+            border-right: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            padding: 0;
+            z-index: 100;
+            box-shadow: var(--shadow);
+        }
+
+        .logo-area {
+            padding: 20px 20px 18px;
+            border-bottom: 1px solid var(--border);
+            margin-bottom: 16px;
+        }
+
+        .logo-img {
+            height: 28px;
+            display: block;
+        }
+
+        .logo-sub {
+            font-size: 10px;
+            color: var(--text3);
+            font-weight: 500;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            margin-top: 6px;
+        }
+
+        .nav {
+            flex: 1;
+            padding: 0 10px;
+        }
+
+        .nav-section {
+            font-size: 10px;
+            font-weight: 600;
+            color: var(--text3);
+            text-transform: uppercase;
+            letter-spacing: 0.09em;
+            padding: 0 8px;
+            margin: 14px 0 6px;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 9px;
+            padding: 8px 10px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--text2);
+            cursor: pointer;
+            transition: all 0.14s;
+            margin-bottom: 1px;
+        }
+
+        .nav-item:hover {
+            background: var(--bg3);
+            color: var(--text);
+        }
+
+        .nav-item.active {
+            background: var(--green-bg);
+            color: var(--green);
+            border: 1px solid var(--green-bd);
+        }
+
+        .nav-item svg {
+            width: 14px;
+            height: 14px;
+            flex-shrink: 0;
+        }
+
+        .sidebar-footer {
+            padding: 14px 18px;
+            border-top: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .conn-dot {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: var(--red);
+            flex-shrink: 0;
+            transition: background .3s;
+        }
+
+        .conn-dot.on {
+            background: var(--green2);
+            animation: blink 2s infinite;
+        }
+
+        @keyframes blink {
+
+            0%,
+            100% {
+                opacity: 1
+            }
+
+            50% {
+                opacity: .4
+            }
+        }
+
+        .conn-info {
+            min-width: 0;
+        }
+
+        .conn-label {
+            font-size: 11px;
+            font-weight: 500;
+            color: var(--text2);
+        }
+
+        .conn-proj {
+            font-size: 10px;
+            color: var(--text3);
+            font-family: var(--mono);
+            margin-top: 1px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        /* ─── MAIN ─── */
+        .main {
+            margin-left: 224px;
+            padding: 30px 32px;
+            min-height: 100vh;
+        }
+
+        /* ─── TOPBAR ─── */
+        .topbar {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            margin-bottom: 28px;
+            gap: 16px;
+            flex-wrap: wrap;
+        }
+
+        .page-title {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--text);
+            letter-spacing: -0.4px;
+        }
+
+        .page-sub {
+            font-size: 12px;
+            color: var(--text3);
+            margin-top: 3px;
+            font-family: var(--mono);
+        }
+
+        .topbar-right {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .company-btn {
+            display: flex;
+            align-items: center;
+            gap: 7px;
+            padding: 7px 13px;
+            background: var(--bg2);
+            border: 1px solid var(--border2);
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 500;
+            color: var(--text2);
+            cursor: pointer;
+            font-family: var(--font);
+            box-shadow: var(--shadow);
+            transition: all .14s;
+        }
+
+        .company-btn:hover {
+            border-color: var(--green-bd);
+            color: var(--text);
+        }
+
+        .company-btn svg {
+            width: 13px;
+            height: 13px;
+        }
+
+        .refresh-btn {
+            display: flex;
+            align-items: center;
+            gap: 7px;
+            padding: 7px 14px;
+            background: var(--green);
+            border: none;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 600;
+            color: #fff;
+            cursor: pointer;
+            font-family: var(--font);
+            box-shadow: 0 1px 4px rgba(14, 122, 78, .25);
+            transition: all .14s;
+        }
+
+        .refresh-btn:hover {
+            background: #0b6640;
+        }
+
+        .refresh-btn svg {
+            width: 13px;
+            height: 13px;
+        }
+
+        .last-upd {
+            font-size: 11px;
+            color: var(--text3);
+            font-family: var(--mono);
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .spin {
+            animation: spin 1s linear infinite;
+        }
+
+        /* ─── METRICS ─── */
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(6, minmax(0, 1fr));
+            gap: 10px;
+            margin-bottom: 22px;
+        }
+
+        .metric {
+            background: var(--bg2);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 16px 18px;
+            box-shadow: var(--shadow);
+            transition: box-shadow .15s;
+        }
+
+        .metric:hover {
+            box-shadow: var(--shadow2);
+        }
+
+        .metric-label {
+            font-size: 10px;
+            font-weight: 600;
+            color: var(--text3);
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            margin-bottom: 8px;
+        }
+
+        .metric-value {
+            font-size: 28px;
+            font-weight: 700;
+            line-height: 1;
+            letter-spacing: -1px;
+            margin-bottom: 5px;
+        }
+
+        .metric-value.green {
+            color: var(--green);
+        }
+
+        .metric-value.amber {
+            color: var(--amber);
+        }
+
+        .metric-value.red {
+            color: var(--red);
+        }
+
+        .metric-value.blue {
+            color: var(--blue);
+        }
+
+        .metric-value.neutral {
+            color: var(--text);
+        }
+
+        .metric-sub {
+            font-size: 11px;
+            color: var(--text3);
+        }
+
+        .metric-line {
+            height: 3px;
+            border-radius: 99px;
+            margin-top: 10px;
+        }
+
+        /* ─── CARDS ─── */
+        .card {
+            background: var(--bg2);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 20px 22px;
+            box-shadow: var(--shadow);
+        }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 16px;
+        }
+
+        .card-title {
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--text2);
+            text-transform: uppercase;
+            letter-spacing: 0.07em;
+        }
+
+        .card-badge {
+            font-size: 11px;
+            color: var(--text3);
+            font-weight: 400;
+        }
+
+        /* ─── SECTION ROWS ─── */
+        .row2 {
+            display: grid;
+            grid-template-columns: 1fr 1.7fr;
+            gap: 14px;
+            margin-bottom: 20px;
+        }
+
+        .row2-rev {
+            display: grid;
+            grid-template-columns: 1.2fr 1fr;
+            gap: 14px;
+            margin-bottom: 20px;
+        }
+
+        /* ─── CHART ─── */
+        .chart-bars {
+            display: flex;
+            align-items: flex-end;
+            gap: 7px;
+            height: 96px;
+        }
+
+        .bar-group {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .bar-fill {
+            width: 100%;
+            border-radius: 4px 4px 0 0;
+            min-height: 4px;
+            position: relative;
+            cursor: default;
+            transition: filter .15s;
+        }
+
+        .bar-fill:hover {
+            filter: brightness(0.88);
+        }
+
+        .bar-count {
+            font-size: 10px;
+            color: var(--text3);
+            font-family: var(--mono);
+            position: absolute;
+            top: -16px;
+            left: 50%;
+            transform: translateX(-50%);
+            white-space: nowrap;
+        }
+
+        .bar-tick {
+            font-size: 10px;
+            color: var(--text3);
+            font-family: var(--mono);
+        }
+
+        /* ─── AGENTS ─── */
+        .agents-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            max-height: 340px;
+            overflow-y: auto;
+        }
+
+        .agent-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 12px;
+            background: var(--bg3);
+            border-radius: 10px;
+            border: 1px solid var(--border);
+            transition: border-color .14s;
+        }
+
+        .agent-row:hover {
+            border-color: var(--border2);
+        }
+
+        .agent-av {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            flex-shrink: 0;
+            background: var(--green-bg);
+            border: 1px solid var(--green-bd);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            font-weight: 700;
+            color: var(--green);
+        }
+
+        .agent-name {
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .agent-meta {
+            display: flex;
+            gap: 10px;
+            margin-top: 3px;
+        }
+
+        .agent-stat {
+            font-size: 10px;
+            color: var(--text3);
+            font-family: var(--mono);
+        }
+
+        .agent-stat b {
+            color: var(--text2);
+            font-weight: 500;
+        }
+
+        .mini-prog-wrap {
+            width: 60px;
+            flex-shrink: 0;
+        }
+
+        .mini-prog {
+            height: 3px;
+            background: var(--bg4);
+            border-radius: 99px;
+            overflow: hidden;
+        }
+
+        .mini-prog-fill {
+            height: 100%;
+            border-radius: 99px;
+            transition: width .4s;
+        }
+
+        .mini-pct {
+            font-size: 10px;
+            color: var(--text3);
+            font-family: var(--mono);
+            text-align: right;
+            margin-top: 3px;
+        }
+
+        /* ─── PROXIMOS ─── */
+        .proximos {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .prox-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 9px 12px;
+            background: var(--bg3);
+            border-radius: 8px;
+            border-left: 3px solid var(--green2);
+        }
+
+        .prox-item.soon {
+            border-left-color: var(--amber);
+        }
+
+        .prox-item.overdue {
+            border-left-color: var(--red);
+        }
+
+        .prox-time {
+            font-family: var(--mono);
+            font-size: 11px;
+            color: var(--text);
+            font-weight: 500;
+            min-width: 58px;
+        }
+
+        .prox-phone {
+            font-family: var(--mono);
+            font-size: 11px;
+            color: var(--text3);
+            flex: 1;
+        }
+
+        .prox-agent {
+            font-size: 10px;
+            color: var(--text3);
+            font-weight: 500;
+        }
+
+        .prox-tent {
+            font-size: 10px;
+            font-family: var(--mono);
+            color: var(--text3);
+        }
+
+        /* ─── FILTERS ─── */
+        .filters {
+            display: flex;
+            gap: 7px;
+            margin-bottom: 14px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .fb {
+            padding: 5px 13px;
+            border-radius: 6px;
+            border: 1px solid var(--border);
+            background: var(--bg2);
+            color: var(--text3);
+            font-size: 12px;
+            font-weight: 500;
+            cursor: pointer;
+            font-family: var(--font);
+            transition: all .14s;
+            box-shadow: var(--shadow);
+        }
+
+        .fb:hover {
+            border-color: var(--border2);
+            color: var(--text2);
+        }
+
+        .fb.active {
+            background: var(--green-bg);
+            border-color: var(--green-bd);
+            color: var(--green);
+        }
+
+        .fsearch {
+            flex: 1;
+            max-width: 200px;
+            padding: 5px 11px;
+            background: var(--bg2);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            color: var(--text);
+            font-size: 12px;
+            font-family: var(--font);
+            outline: none;
+            box-shadow: var(--shadow);
+        }
+
+        .fsearch:focus {
+            border-color: var(--green-bd);
+        }
+
+        .fsearch::placeholder {
+            color: var(--text3);
+        }
+
+        .fsel {
+            padding: 5px 11px;
+            background: var(--bg2);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            color: var(--text2);
+            font-size: 12px;
+            font-family: var(--font);
+            outline: none;
+            cursor: pointer;
+            box-shadow: var(--shadow);
+        }
+
+        .fsel:focus {
+            border-color: var(--green-bd);
+        }
+
+        /* ─── TABLE ─── */
+        .tbl-wrap {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        thead tr {
+            border-bottom: 1px solid var(--border);
+        }
+
+        th {
+            font-size: 10px;
+            font-weight: 700;
+            color: var(--text3);
+            text-transform: uppercase;
+            letter-spacing: 0.09em;
+            padding: 7px 11px;
+            text-align: left;
+            white-space: nowrap;
+            background: var(--bg3);
+        }
+
+        th:first-child {
+            border-radius: 8px 0 0 0;
+        }
+
+        th:last-child {
+            border-radius: 0 8px 0 0;
+        }
+
+        td {
+            padding: 10px 11px;
+            font-size: 12px;
+            color: var(--text2);
+            border-bottom: 1px solid var(--border);
+            vertical-align: middle;
+        }
+
+        tbody tr:last-child td {
+            border-bottom: none;
+        }
+
+        tbody tr:hover td {
+            background: var(--bg3);
+        }
+
+        .mono {
+            font-family: var(--mono);
+            font-size: 11px;
+        }
+
+        /* ─── PILLS ─── */
+        .pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 3px 9px;
+            border-radius: 99px;
+            font-size: 10px;
+            font-weight: 600;
+            letter-spacing: 0.03em;
+        }
+
+        .pill-dot {
+            width: 5px;
+            height: 5px;
+            border-radius: 50%;
+        }
+
+        .pill-ativo {
+            background: var(--green-bg);
+            color: var(--green);
+            border: 1px solid var(--green-bd);
+        }
+
+        .pill-ativo .pill-dot {
+            background: var(--green2);
+            animation: blink 2s infinite;
+        }
+
+        .pill-vencido {
+            background: var(--amber-bg);
+            color: var(--amber);
+            border: 1px solid rgba(180, 83, 9, .2);
+        }
+
+        .pill-vencido .pill-dot {
+            background: var(--amber);
+        }
+
+        .pill-enc {
+            background: var(--bg3);
+            color: var(--text3);
+            border: 1px solid var(--border);
+        }
+
+        .pill-enc .pill-dot {
+            background: var(--text3);
+        }
+
+        .pill-esg {
+            background: var(--red-bg);
+            color: var(--red);
+            border: 1px solid rgba(185, 28, 28, .2);
+        }
+
+        .pill-esg .pill-dot {
+            background: var(--red);
+        }
+
+        /* ─── PROGRESS ─── */
+        .prog-row {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .prog-bar {
+            height: 4px;
+            background: var(--bg4);
+            border-radius: 99px;
+            overflow: hidden;
+            width: 80px;
+        }
+
+        .prog-fill {
+            height: 100%;
+            border-radius: 99px;
+        }
+
+        .c-green {
+            background: var(--green2);
+        }
+
+        .c-amber {
+            background: var(--amber);
+        }
+
+        .c-red {
+            background: var(--red);
+        }
+
+        .dots-row {
+            display: flex;
+            gap: 3px;
+        }
+
+        .tdot {
+            width: 9px;
+            height: 9px;
+            border-radius: 50%;
+            background: var(--bg4);
+            border: 1px solid var(--border);
+        }
+
+        .tdot.done {
+            background: var(--green2);
+            border-color: var(--green2);
+        }
+
+        .tdot.done.amber {
+            background: var(--amber);
+            border-color: var(--amber);
+        }
+
+        .tdot.done.red {
+            background: var(--red);
+            border-color: var(--red);
+        }
+
+        /* ─── EMPTY ─── */
+        .empty {
+            padding: 36px;
+            text-align: center;
+            color: var(--text3);
+            font-size: 13px;
+        }
+
+        .empty svg {
+            width: 28px;
+            height: 28px;
+            margin: 0 auto 10px;
+            display: block;
+            opacity: .35;
+        }
+
+        /* ─── MODAL ─── */
+        .overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.35);
+            z-index: 999;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .overlay.open {
+            display: flex;
+        }
+
+        .modal {
+            background: var(--bg2);
+            border: 1px solid var(--border2);
+            border-radius: 16px;
+            padding: 28px;
+            width: 400px;
+            box-shadow: var(--shadow2);
+        }
+
+        .modal-title {
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--text);
+            margin-bottom: 6px;
+        }
+
+        .modal-desc {
+            font-size: 12px;
+            color: var(--text3);
+            margin-bottom: 20px;
+            line-height: 1.6;
+        }
+
+        .modal-desc code {
+            background: var(--bg3);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-family: var(--mono);
+        }
+
+        .modal-inp {
+            width: 100%;
+            padding: 10px 13px;
+            background: var(--bg3);
+            border: 1px solid var(--border2);
+            border-radius: 8px;
+            color: var(--text);
+            font-size: 13px;
+            font-family: var(--mono);
+            outline: none;
+            margin-bottom: 12px;
+        }
+
+        .modal-inp:focus {
+            border-color: var(--green-bd);
+        }
+
+        .modal-inp::placeholder {
+            color: var(--text3);
+            font-family: var(--font);
+        }
+
+        .mbtn {
+            width: 100%;
+            padding: 10px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 600;
+            font-family: var(--font);
+            cursor: pointer;
+            transition: all .14s;
+            margin-bottom: 8px;
+        }
+
+        .mbtn-primary {
+            background: var(--green);
+            border: none;
+            color: #fff;
+        }
+
+        .mbtn-primary:hover {
+            background: #0b6640;
+        }
+
+        .mbtn-ghost {
+            background: transparent;
+            border: 1px solid var(--border2);
+            color: var(--text3);
+        }
+
+        .mbtn-ghost:hover {
+            background: var(--bg3);
+            color: var(--text2);
+        }
+
+        .modal-hint {
+            font-size: 11px;
+            color: var(--text3);
+            text-align: center;
+        }
+
+        /* ─── RESPONSIVE ─── */
+        @media (max-width: 1200px) {
+            .metrics-grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+
+        @media (max-width: 900px) {
+
+            .row2,
+            .row2-rev {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 760px) {
+            .sidebar {
+                display: none;
+            }
+
+            .main {
+                margin-left: 0;
+                padding: 20px 16px;
+            }
+
+            .metrics-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+        <div class="logo-area">
+            <img src="https://pub-db8ed4fb33634589a6ce5fb07e85cb46.r2.dev/logo/qozt/SVG/logo_horizontal_preta.svg"
+                class="logo-img" alt="Qózt"
+                onerror="this.style.display='none';this.nextElementSibling.style.display='block'">
+            <span style="display:none;font-size:16px;font-weight:700;color:var(--text)">Qózt</span>
+            <div class="logo-sub">Follow-up Monitor</div>
+        </div>
+        <nav class="nav">
+            <div class="nav-section">Principal</div>
+            <div class="nav-item active">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="3" />
+                    <path
+                        d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83" />
+                </svg>
+                Follow-up
+            </div>
+            <div class="nav-item"
+                onclick="sendPrompt('Me mostre quais leads estão vencidos e precisam de atenção agora')">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path
+                        d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
+                    <line x1="12" y1="9" x2="12" y2="13" />
+                    <line x1="12" y1="17" x2="12.01" y2="17" />
+                </svg>
+                Alertas
+            </div>
+            <div class="nav-section">Análise</div>
+            <div class="nav-item" onclick="sendPrompt('Qual agente tem a maior taxa de esgotamento no followup?')">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                    <circle cx="9" cy="7" r="4" />
+                    <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+                    <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+                </svg>
+                Por agente
+            </div>
+            <div class="nav-item" onclick="sendPrompt('Gere um resumo executivo do followup desta semana')">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                    <polyline points="14 2 14 8 20 8" />
+                    <line x1="16" y1="13" x2="8" y2="13" />
+                    <line x1="16" y1="17" x2="8" y2="17" />
+                </svg>
+                Relatório
+            </div>
+        </nav>
+        <div class="sidebar-footer">
+            <div class="conn-dot" id="conn-dot"></div>
+            <div class="conn-info">
+                <div class="conn-label" id="conn-label">desconectado</div>
+                <div class="conn-proj" id="conn-proj">—</div>
+            </div>
+        </div>
+    </aside>
+
+    <!-- MAIN -->
+    <main class="main">
+
+        <!-- TOPBAR -->
+        <div class="topbar">
+            <div>
+                <div class="page-title">Monitor de Follow-up</div>
+                <div class="page-sub" id="page-sub">carregando dados...</div>
+            </div>
+            <div class="topbar-right">
+                <div class="last-upd" id="last-upd">—</div>
+                <button class="company-btn" onclick="document.getElementById('modal').classList.add('open')">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+                        <polyline points="9 22 9 12 15 12 15 22" />
+                    </svg>
+                    <span id="company-label">Todas as empresas</span>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        style="width:10px;height:10px">
+                        <polyline points="6 9 12 15 18 9" />
+                    </svg>
+                </button>
+                <button class="refresh-btn" onclick="loadData()" id="ref-btn">
+                    <svg id="ref-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M23 4v6h-6" />
+                        <path d="M1 20v-6h6" />
+                        <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15" />
+                    </svg>
+                    Atualizar
+                </button>
+            </div>
+        </div>
+
+        <!-- METRICS -->
+        <div class="metrics-grid">
+            <div class="metric">
+                <div class="metric-label">Ativos</div>
+                <div class="metric-value green" id="m-ativos">—</div>
+                <div class="metric-sub">aguardando resposta</div>
+                <div class="metric-line" style="background:var(--green-bg)">
+                    <div id="ml-ativos"
+                        style="height:3px;border-radius:99px;background:var(--green2);width:0%;transition:width .5s">
+                    </div>
+                </div>
+            </div>
+            <div class="metric">
+                <div class="metric-label">Vencidos</div>
+                <div class="metric-value amber" id="m-venc">—</div>
+                <div class="metric-sub">envio atrasado</div>
+                <div class="metric-line" style="background:var(--amber-bg)">
+                    <div id="ml-venc"
+                        style="height:3px;border-radius:99px;background:var(--amber);width:0%;transition:width .5s">
+                    </div>
+                </div>
+            </div>
+            <div class="metric">
+                <div class="metric-label">Esgotados</div>
+                <div class="metric-value red" id="m-esg">—</div>
+                <div class="metric-sub">8 tent. sem resposta</div>
+                <div class="metric-line" style="background:var(--red-bg)">
+                    <div id="ml-esg"
+                        style="height:3px;border-radius:99px;background:var(--red);width:0%;transition:width .5s"></div>
+                </div>
+            </div>
+            <div class="metric">
+                <div class="metric-label">Encerrados</div>
+                <div class="metric-value blue" id="m-enc">—</div>
+                <div class="metric-sub">ciclo finalizado</div>
+                <div class="metric-line" style="background:var(--blue-bg)">
+                    <div id="ml-enc"
+                        style="height:3px;border-radius:99px;background:var(--blue);width:0%;transition:width .5s">
+                    </div>
+                </div>
+            </div>
+            <div class="metric">
+                <div class="metric-label">Total leads</div>
+                <div class="metric-value neutral" id="m-tot">—</div>
+                <div class="metric-sub">no sistema</div>
+            </div>
+            <div class="metric">
+                <div class="metric-label">Taxa encerramento</div>
+                <div class="metric-value green" id="m-taxa">—%</div>
+                <div class="metric-sub">do total cadastrado</div>
+            </div>
+        </div>
+
+        <!-- ROW 1: chart + agents -->
+        <div class="row2">
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-title">Por tentativa</div>
+                    <div class="card-badge" id="chart-badge">— ativos</div>
+                </div>
+                <div class="chart-bars" id="chart-bars">
+                    <div class="empty" style="width:100%;padding:16px">carregando...</div>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-title">Por agente</div>
+                    <div class="card-badge" id="agents-badge"></div>
+                </div>
+                <div class="agents-list" id="agents-list">
+                    <div class="empty">carregando...</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ROW 2: proximos + table -->
+        <div class="row2-rev">
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-title">Próximos envios</div>
+                    <div class="card-badge">próximas 3h</div>
+                </div>
+                <div class="proximos" id="proximos">
+                    <div class="empty">carregando...</div>
+                </div>
+            </div>
+            <div class="card" style="min-width:0">
+                <div class="card-header">
+                    <div class="card-title">Todos os leads</div>
+                    <div class="card-badge" id="tbl-count"></div>
+                </div>
+                <div class="filters">
+                    <button class="fb active" onclick="setF('todos',this)">Todos</button>
+                    <button class="fb" onclick="setF('ativos',this)">Ativos</button>
+                    <button class="fb" onclick="setF('vencidos',this)">Vencidos</button>
+                    <button class="fb" onclick="setF('encerrados',this)">Encerrados</button>
+                    <button class="fb" onclick="setF('esgotados',this)">Esgotados</button>
+                    <select class="fsel" id="ag-sel" onchange="renderTable()">
+                        <option value="">Todos os agentes</option>
+                    </select>
+                    <input class="fsearch" id="srch" placeholder="Buscar telefone..." oninput="renderTable()">
+                </div>
+                <div class="tbl-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Telefone</th>
+                                <th>Agente</th>
+                                <th>Tent.</th>
+                                <th>Progresso</th>
+                                <th>Próx. envio</th>
+                                <th>Últ. contato</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tbl-body">
+                            <tr>
+                                <td colspan="7"
+                                    style="text-align:center;padding:24px;color:var(--text3);font-style:italic">
+                                    carregando...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- MODAL EMPRESA -->
+    <div class="overlay" id="modal" onclick="if(event.target===this)this.classList.remove('open')">
+        <div class="modal">
+            <div class="modal-title">Filtrar por empresa</div>
+            <div class="modal-desc">
+                Cole o <code>company_id</code> do Helena CRM para filtrar os dados deste cliente específico.<br>
+                Funciona também via URL: <code>?company=ID</code> — compartilhe o link já filtrado.
+            </div>
+            <input class="modal-inp" id="comp-inp" placeholder="22f6d02e-3a1d-4af4-9cad-007bdcb8616b">
+            <button class="mbtn mbtn-primary" onclick="applyCompany()">Aplicar filtro</button>
+            <button class="mbtn mbtn-ghost" onclick="clearCompany()">Limpar e ver todas</button>
+            <div class="modal-hint">O filtro é preservado na URL para compartilhamento</div>
+        </div>
+    </div>
+
+    <script>
+        const SB_URL = 'https://oatihdndhcouXdqhantw.supabase.co';
+        const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9hdGloZG5kaGNvdXhkcWhhbnR3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjkwODc1NjksImV4cCI6MjA4NDY2MzU2OX0.00PCoHzUISJYrtjMd940dExN8y5iF8alhPTeX43lmXc';
+
+        let DATA = [], FILTER = 'todos', COMPANY = '';
+
+        /* ── URL ── */
+        function getUrlCompany() { return new URLSearchParams(location.search).get('company') || ''; }
+        function setUrlCompany(v) {
+            const u = new URL(location.href);
+            v ? u.searchParams.set('company', v) : u.searchParams.delete('company');
+            history.replaceState({}, '', u);
+        }
+        function applyCompany() {
+            COMPANY = document.getElementById('comp-inp').value.trim();
+            setUrlCompany(COMPANY);
+            document.getElementById('company-label').textContent = COMPANY ? COMPANY.slice(0, 14) + '…' : 'Todas as empresas';
+            document.getElementById('modal').classList.remove('open');
+            loadData();
+        }
+        function clearCompany() {
+            COMPANY = '';
+            document.getElementById('comp-inp').value = '';
+            setUrlCompany('');
+            document.getElementById('company-label').textContent = 'Todas as empresas';
+            document.getElementById('modal').classList.remove('open');
+            loadData();
+        }
+
+        /* ── FETCH ── */
+        async function fetchData() {
+            let url = `${SB_URL}/rest/v1/followup_state?select=*&order=atualizado_em.desc&limit=1000`;
+            if (COMPANY) url += `&company_id=eq.${encodeURIComponent(COMPANY)}`;
+            const r = await fetch(url, { headers: { apikey: SB_KEY, Authorization: `Bearer ${SB_KEY}` } });
+            if (!r.ok) throw new Error('HTTP ' + r.status);
+            return r.json();
+        }
+
+        /* ── UTILS ── */
+        function phone(t) {
+            const s = String(t || '').replace(/\D/g, '');
+            if (s.length >= 12) return `+${s.slice(0, 2)} (${s.slice(2, 4)}) ${s.slice(4, 9)}-${s.slice(9)}`;
+            return t;
+        }
+        function rel(iso) {
+            if (!iso) return '—';
+            const m = Math.round((new Date(iso) - Date.now()) / 60000);
+            if (Math.abs(m) < 1) return 'agora';
+            if (Math.abs(m) < 60) return m > 0 ? `em ${m}min` : `há ${Math.abs(m)}min`;
+            const h = Math.round(Math.abs(m) / 60);
+            if (h < 24) return m > 0 ? `em ${h}h` : `há ${h}h`;
+            return m > 0 ? `em ${Math.round(Math.abs(m) / 1440)}d` : `há ${Math.round(Math.abs(m) / 1440)}d`;
+        }
+        function status(r) {
+            if (!r.ativo) return r.tentativa >= 8 ? 'esgotado' : 'encerrado';
+            if (r.proximo_envio && new Date(r.proximo_envio) < new Date()) return 'vencido';
+            return 'ativo';
+        }
+        function initials(s) {
+            if (!s) return '??';
+            return (s.split(/[_\s-]/).map(w => w[0] || '').join('').toUpperCase() || s.slice(0, 2).toUpperCase()).slice(0, 2);
+        }
+
+        /* ── METRICS ── */
+        function metrics(d) {
+            const tot = d.length, at = d.filter(r => status(r) === 'ativo').length,
+                ve = d.filter(r => status(r) === 'vencido').length,
+                es = d.filter(r => status(r) === 'esgotado').length,
+                en = d.filter(r => status(r) === 'encerrado').length;
+            const taxa = tot ? Math.round(((en + es) / tot) * 100) : 0;
+            document.getElementById('m-ativos').textContent = at;
+            document.getElementById('m-venc').textContent = ve;
+            document.getElementById('m-esg').textContent = es;
+            document.getElementById('m-enc').textContent = en;
+            document.getElementById('m-tot').textContent = tot;
+            document.getElementById('m-taxa').textContent = taxa + '%';
+            if (tot) {
+                document.getElementById('ml-ativos').style.width = Math.round(at / tot * 100) + '%';
+                document.getElementById('ml-venc').style.width = Math.round(ve / tot * 100) + '%';
+                document.getElementById('ml-esg').style.width = Math.round(es / tot * 100) + '%';
+                document.getElementById('ml-enc').style.width = Math.round(en / tot * 100) + '%';
+            }
+        }
+
+        /* ── CHART ── */
+        function chart(d) {
+            const act = d.filter(r => r.ativo);
+            const counts = Array(9).fill(0);
+            act.forEach(r => counts[Math.min(r.tentativa || 0, 8)]++);
+            const max = Math.max(...counts, 1);
+            document.getElementById('chart-badge').textContent = act.length + ' ativo' + (act.length !== 1 ? 's' : '');
+            const color = i => i <= 2 ? 'var(--green2)' : i <= 5 ? 'var(--amber)' : 'var(--red)';
+            document.getElementById('chart-bars').innerHTML = counts.map((c, i) => {
+                const h = Math.max(Math.round(c / max * 84), 4);
+                return `<div class="bar-group">
+      <div class="bar-fill" style="height:${h}px;background:${color(i)};opacity:${c ? 0.75 : 0.15}" title="${c} lead${c !== 1 ? 's' : ''}">
+        ${c ? `<div class="bar-count">${c}</div>` : ''}
+      </div>
+      <div class="bar-tick">${i === 0 ? '0' : i + '×'}</div>
+    </div>`;
+            }).join('');
+        }
+
+        /* ── AGENTS ── */
+        function agents(d) {
+            const m = {};
+            d.forEach(r => {
+                const id = r.agente_id || 'Desconhecido';
+                if (!m[id]) m[id] = { at: 0, en: 0, es: 0, tot: 0, sum: 0 };
+                m[id].tot++; m[id].sum += r.tentativa || 0;
+                const st = status(r);
+                if (st === 'ativo' || st === 'vencido') m[id].at++;
+                else if (st === 'esgotado') m[id].es++;
+                else m[id].en++;
+            });
+
+            // rebuild select
+            const sel = document.getElementById('ag-sel'), prev = sel.value;
+            sel.innerHTML = '<option value="">Todos os agentes</option>';
+            Object.keys(m).forEach(id => sel.innerHTML += `<option value="${id}"${prev === id ? ' selected' : ''}>${id}</option>`);
+
+            const entries = Object.entries(m).sort((a, b) => b[1].at - a[1].at);
+            document.getElementById('agents-badge').textContent = entries.length + ' agente' + (entries.length !== 1 ? 's' : '');
+            const list = document.getElementById('agents-list');
+            if (!entries.length) { list.innerHTML = '<div class="empty">Sem agentes registrados</div>'; return; }
+
+            list.innerHTML = entries.map(([id, s]) => {
+                const avg = s.tot ? (s.sum / s.tot).toFixed(1) : '0';
+                const pct = s.tot ? Math.round(s.at / s.tot * 100) : 0;
+                const fc = pct > 60 ? 'c-red' : pct > 30 ? 'c-amber' : 'c-green';
+                return `<div class="agent-row">
+      <div class="agent-av">${initials(id)}</div>
+      <div style="flex:1;min-width:0">
+        <div class="agent-name">${id}</div>
+        <div class="agent-meta">
+          <span class="agent-stat"><b>${s.at}</b> atv</span>
+          <span class="agent-stat"><b>${s.en + s.es}</b> enc</span>
+          <span class="agent-stat"><b>${avg}</b> avg</span>
+        </div>
+      </div>
+      <div class="mini-prog-wrap">
+        <div class="mini-prog"><div class="mini-prog-fill ${fc}" style="width:${pct}%"></div></div>
+        <div class="mini-pct">${pct}% atv</div>
+      </div>
+    </div>`;
+            }).join('');
+        }
+
+        /* ── PROXIMOS ── */
+        function proximos(d) {
+            const now = Date.now(), h3 = now + 3 * 3600 * 1000;
+            const list = d.filter(r => r.ativo && r.proximo_envio)
+                .sort((a, b) => new Date(a.proximo_envio) - new Date(b.proximo_envio))
+                .slice(0, 8);
+            const el = document.getElementById('proximos');
+            if (!list.length) { el.innerHTML = '<div class="empty" style="padding:16px">Nenhum envio programado</div>'; return; }
+            el.innerHTML = list.map(r => {
+                const ms = new Date(r.proximo_envio).getTime();
+                const cls = ms < now ? 'overdue' : ms < h3 ? 'soon' : '';
+                return `<div class="prox-item ${cls}">
+      <div class="prox-time">${rel(r.proximo_envio)}</div>
+      <div class="prox-phone">${phone(r.telefone)}</div>
+      <div class="prox-agent">${r.agente_id || '—'}</div>
+      <div class="prox-tent">${r.tentativa || 0}/8</div>
+    </div>`;
+            }).join('');
+        }
+
+        /* ── TABLE ── */
+        function setF(f, btn) {
+            FILTER = f;
+            document.querySelectorAll('.fb').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            renderTable();
+        }
+        function renderTable() {
+            const ag = document.getElementById('ag-sel').value;
+            const q = document.getElementById('srch').value.toLowerCase();
+            let rows = DATA;
+            if (FILTER === 'ativos') rows = rows.filter(r => status(r) === 'ativo');
+            else if (FILTER === 'vencidos') rows = rows.filter(r => status(r) === 'vencido');
+            else if (FILTER === 'encerrados') rows = rows.filter(r => status(r) === 'encerrado');
+            else if (FILTER === 'esgotados') rows = rows.filter(r => status(r) === 'esgotado');
+            if (ag) rows = rows.filter(r => r.agente_id === ag);
+            if (q) rows = rows.filter(r => (r.telefone || '').includes(q) || (r.agente_id || '').toLowerCase().includes(q));
+
+            const n = rows.length;
+            document.getElementById('tbl-count').textContent = n + ' registro' + (n !== 1 ? 's' : '') + (n > 100 ? ' (top 100)' : '');
+
+            const pills = {
+                ativo: '<span class="pill pill-ativo"><span class="pill-dot"></span>ativo</span>',
+                vencido: '<span class="pill pill-vencido"><span class="pill-dot"></span>vencido</span>',
+                encerrado: '<span class="pill pill-enc"><span class="pill-dot"></span>encerrado</span>',
+                esgotado: '<span class="pill pill-esg"><span class="pill-dot"></span>esgotado</span>',
+            };
+
+            const tbody = document.getElementById('tbl-body');
+            if (!n) {
+                tbody.innerHTML = `<tr><td colspan="7"><div class="empty">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      Nenhum registro encontrado
+    </div></td></tr>`;
+                return;
+            }
+            tbody.innerHTML = rows.slice(0, 100).map(r => {
+                const t = r.tentativa || 0, pct = Math.round(t / 8 * 100);
+                const pc = t >= 6 ? 'c-red' : t >= 4 ? 'c-amber' : 'c-green';
+                const dots = Array(8).fill(0).map((_, i) => `<div class="tdot${i < t ? ' done' + (i >= 6 ? ' red' : i >= 4 ? ' amber' : '') : ''}"></div>`).join('');
+                return `<tr>
+      <td class="mono" style="color:var(--text)">${phone(r.telefone)}</td>
+      <td><span style="font-size:11px;font-weight:600;color:var(--text)">${r.agente_id || '—'}</span></td>
+      <td class="mono" style="color:var(--text)">${t}<span style="color:var(--text3)">/8</span></td>
+      <td><div class="prog-row"><div class="prog-bar"><div class="prog-fill ${pc}" style="width:${pct}%"></div></div><div class="dots-row">${dots}</div></div></td>
+      <td class="mono">${rel(r.proximo_envio)}</td>
+      <td class="mono">${rel(r.ultimo_contato)}</td>
+      <td>${pills[status(r)]}</td>
+    </tr>`;
+            }).join('');
+        }
+
+        /* ── LOAD ── */
+        async function loadData() {
+            document.getElementById('ref-icon').classList.add('spin');
+            try {
+                DATA = await fetchData();
+                metrics(DATA); chart(DATA); agents(DATA); proximos(DATA); renderTable();
+                const now = new Date();
+                document.getElementById('last-upd').textContent = `atualizado ${now.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}`;
+                document.getElementById('page-sub').textContent = `${DATA.length} lead${DATA.length !== 1 ? 's' : ''} · ${COMPANY ? 'company: ' + COMPANY.slice(0, 8) + '…' : 'todas as empresas'}`;
+                document.getElementById('conn-dot').classList.add('on');
+                document.getElementById('conn-label').textContent = 'conectado';
+                document.getElementById('conn-proj').textContent = 'oatihdndhcouXdqhantw';
+            } catch (e) {
+                document.getElementById('conn-dot').classList.remove('on');
+                document.getElementById('conn-label').textContent = 'erro';
+                document.getElementById('conn-proj').textContent = e.message;
+            } finally {
+                document.getElementById('ref-icon').classList.remove('spin');
+            }
+        }
+
+        /* ── INIT ── */
+        COMPANY = getUrlCompany();
+        if (COMPANY) {
+            document.getElementById('comp-inp').value = COMPANY;
+            document.getElementById('company-label').textContent = COMPANY.slice(0, 14) + '…';
+        }
+        loadData();
+        setInterval(loadData, 30000);
+    </script>
+</body>
+
+</html>
