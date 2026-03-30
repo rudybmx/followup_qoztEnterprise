@@ -1084,7 +1084,7 @@
             </div>
             <div class="topbar-right">
                 <div class="last-upd" id="last-upd">—</div>
-                <button class="company-btn" onclick="document.getElementById('modal').classList.add('open')">
+                <button class="company-btn">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
                         <polyline points="9 22 9 12 15 12 15 22" />
@@ -1238,47 +1238,164 @@
     <!-- MODAL EMPRESA -->
     <div class="overlay" id="modal" onclick="if(event.target===this)this.classList.remove('open')">
         <div class="modal">
-            <div class="modal-title">Filtrar por empresa</div>
+            <div class="modal-title">Configurar empresa</div>
             <div class="modal-desc">
-                Cole o <code>company_id</code> do Helena CRM para filtrar os dados deste cliente específico.<br>
-                Funciona também via URL: <code>?company=ID</code> — compartilhe o link já filtrado.
+                Cole o <code>company_id</code> do Helena CRM e defina o número de followups para este cliente.<br>
+                Funciona também via URL: <code>?company=ID&max=3</code>
             </div>
-            <input class="modal-inp" id="comp-inp" placeholder="22f6d02e-3a1d-4af4-9cad-007bdcb8616b">
-            <button class="mbtn mbtn-primary" onclick="applyCompany()">Aplicar filtro</button>
-            <button class="mbtn mbtn-ghost" onclick="clearCompany()">Limpar e ver todas</button>
-            <div class="modal-hint">O filtro é preservado na URL para compartilhamento</div>
+
+            <!-- SENHA -->
+            <div id="modal-lock">
+                <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--text3)" stroke-width="2">
+                        <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+                        <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+                    </svg>
+                    <span style="font-size:11px;color:var(--text3)">Configuração protegida por senha</span>
+                </div>
+                <input class="modal-inp" id="senha-inp" type="password" placeholder="Digite a senha para editar...">
+                <button class="mbtn mbtn-primary" onclick="checkSenha()">Desbloquear</button>
+                <div style="font-size:11px;color:var(--red);margin-top:8px;display:none" id="senha-err">Senha incorreta
+                </div>
+            </div>
+
+            <!-- FORM (bloqueado por padrão) -->
+            <div id="modal-form" style="display:none">
+                <div style="margin-bottom:12px">
+                    <div style="font-size:11px;color:var(--text3);margin-bottom:5px;font-weight:500">Nome do cliente
+                    </div>
+                    <input class="modal-inp" id="nome-inp" placeholder="Ex: ODC Cachoeirinha" style="margin-bottom:0">
+                </div>
+                <div style="margin-bottom:12px">
+                    <div style="font-size:11px;color:var(--text3);margin-bottom:5px;font-weight:500">Nome do cliente
+                    </div>
+                    <input class="modal-inp" id="nome-inp" placeholder="Ex: ODC Cachoeirinha" style="margin-bottom:0">
+                </div>
+                <div style="display:flex;gap:10px;align-items:flex-end;margin-bottom:12px">
+                    <div style="flex:1">
+                        <div style="font-size:11px;color:var(--text3);margin-bottom:5px;font-weight:500">Company ID
+                        </div>
+                        <input class="modal-inp" id="comp-inp" placeholder="22f6d02e-3a1d-4af4-9cad-007bdcb8616b"
+                            style="margin-bottom:0">
+                    </div>
+                    <div style="flex-shrink:0">
+                        <div style="font-size:11px;color:var(--text3);margin-bottom:5px;font-weight:500">Followups</div>
+                        <select class="modal-inp" id="max-inp" style="margin-bottom:0;width:100px;cursor:pointer">
+                            <option value="1">1 dia</option>
+                            <option value="2">2 dias</option>
+                            <option value="3">3 dias</option>
+                            <option value="4">4 dias</option>
+                            <option value="5">5 dias</option>
+                            <option value="6">6 dias</option>
+                            <option value="7">7 dias</option>
+                            <option value="8" selected>8 dias</option>
+                        </select>
+                    </div>
+                </div>
+                <button class="mbtn mbtn-primary" id="apply-btn" onclick="applyCompany()">Aplicar configuração</button>
+                <div style="font-size:11px;color:var(--text3);text-align:center;margin-top:10px">O filtro é preservado
+                    na URL para compartilhamento</div>
+            </div>
         </div>
     </div>
 
     <script>
         const SB_URL = 'https://oatihdndhcouXdqhantw.supabase.co';
+        const WEBHOOK_URL = 'https://webhooks.qozt.com.br/webhook/9a790cbb-2924-4480-8fd8-1dfa2ce581d1';
         const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9hdGloZG5kaGNvdXhkcWhhbnR3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjkwODc1NjksImV4cCI6MjA4NDY2MzU2OX0.00PCoHzUISJYrtjMd940dExN8y5iF8alhPTeX43lmXc';
 
-        let DATA = [], FILTER = 'todos', COMPANY = '';
+        const CONFIG_HOOK = 'https://webhooks.qozt.com.br/webhook/9a790cbb-2924-4480-8fd8-1dfa2ce581d1';
+        let DATA = [], FILTER = 'todos', COMPANY = '', MAX_TENT = 8;
+
+        /* ── SENHA ── */
+        const SENHA_CORRETA = 'Qozt@102030*';
+        function checkSenha() {
+            const v = document.getElementById('senha-inp').value;
+            const err = document.getElementById('senha-err');
+            if (v === SENHA_CORRETA) {
+                document.getElementById('modal-lock').style.display = 'none';
+                document.getElementById('modal-form').style.display = 'block';
+                document.getElementById('senha-inp').value = '';
+                err.style.display = 'none';
+            } else {
+                err.style.display = 'block';
+                document.getElementById('senha-inp').value = '';
+                document.getElementById('senha-inp').focus();
+            }
+        }
+        document.addEventListener('keydown', function (e) {
+            const inp = document.getElementById('senha-inp');
+            if (inp && document.getElementById('modal').classList.contains('open') && e.key === 'Enter' && document.activeElement === inp) checkSenha();
+        });
 
         /* ── URL ── */
         function getUrlCompany() { return new URLSearchParams(location.search).get('company') || ''; }
-        function setUrlCompany(v) {
+        function getUrlMax() { return parseInt(new URLSearchParams(location.search).get('max')) || 8; }
+        function setUrlParams(company, max) {
             const u = new URL(location.href);
-            v ? u.searchParams.set('company', v) : u.searchParams.delete('company');
+            company ? u.searchParams.set('company', company) : u.searchParams.delete('company');
+            max !== 8 ? u.searchParams.set('max', max) : u.searchParams.delete('max');
             history.replaceState({}, '', u);
         }
-        function applyCompany() {
+        async function applyCompany() {
             COMPANY = document.getElementById('comp-inp').value.trim();
-            setUrlCompany(COMPANY);
+            MAX_TENT = parseInt(document.getElementById('max-inp').value) || 8;
+            const nome = document.getElementById('nome-inp') ? document.getElementById('nome-inp').value.trim() : '';
+            setUrlParams(COMPANY, MAX_TENT);
             document.getElementById('company-label').textContent = COMPANY ? COMPANY.slice(0, 14) + '…' : 'Todas as empresas';
+
+            if (COMPANY) {
+                const btnEl = document.querySelector('#modal-form .mbtn-primary');
+                const orig = btnEl ? btnEl.textContent : '';
+                if (btnEl) btnEl.textContent = 'Salvando...';
+                try {
+                    const r = await fetch(CONFIG_HOOK, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ action: 'save_config', company_id: COMPANY, max_tentativas: MAX_TENT, nome_cliente: nome })
+                    });
+                    const d = await r.json();
+                    if (!d.ok) throw new Error('webhook retornou erro');
+                } catch (e) { console.warn('Erro ao salvar config via webhook:', e); }
+                finally { if (btnEl) btnEl.textContent = orig; }
+            }
+
             document.getElementById('modal').classList.remove('open');
-            loadData();
-        }
-        function clearCompany() {
-            COMPANY = '';
-            document.getElementById('comp-inp').value = '';
-            setUrlCompany('');
-            document.getElementById('company-label').textContent = 'Todas as empresas';
-            document.getElementById('modal').classList.remove('open');
+            document.getElementById('modal-lock').style.display = 'block';
+            document.getElementById('modal-form').style.display = 'none';
             loadData();
         }
 
+        /* fecha modal voltando ao estado bloqueado */
+        document.getElementById('modal').addEventListener('click', function (e) {
+            if (e.target === this) {
+                document.getElementById('modal-lock').style.display = 'block';
+                document.getElementById('modal-form').style.display = 'none';
+                document.getElementById('senha-err').style.display = 'none';
+            }
+        });
+
+        /* abre modal: carrega config existente via webhook */
+        document.querySelector('.company-btn').addEventListener('click', async function () {
+            document.getElementById('modal').classList.add('open');
+            if (COMPANY) {
+                try {
+                    const r = await fetch(CONFIG_HOOK, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ action: 'get_config', company_id: COMPANY })
+                    });
+                    const d = await r.json();
+                    if (d && d.max_tentativas) {
+                        document.getElementById('max-inp').value = d.max_tentativas;
+                        MAX_TENT = d.max_tentativas;
+                    }
+                    if (d && d.nome_cliente && document.getElementById('nome-inp')) {
+                        document.getElementById('nome-inp').value = d.nome_cliente;
+                    }
+                } catch (e) { console.warn('Erro ao carregar config:', e); }
+            }
+        });
         /* ── FETCH ── */
         async function fetchData() {
             let url = `${SB_URL}/rest/v1/followup_state?select=*&order=atualizado_em.desc&limit=1000`;
@@ -1478,7 +1595,7 @@
                 metrics(DATA); chart(DATA); agents(DATA); proximos(DATA); renderTable();
                 const now = new Date();
                 document.getElementById('last-upd').textContent = `atualizado ${now.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}`;
-                document.getElementById('page-sub').textContent = `${DATA.length} lead${DATA.length !== 1 ? 's' : ''} · ${COMPANY ? 'company: ' + COMPANY.slice(0, 8) + '…' : 'todas as empresas'}`;
+                document.getElementById('page-sub').textContent = `${DATA.length} lead${DATA.length !== 1 ? 's' : ''} · ${COMPANY ? 'company: ' + COMPANY.slice(0, 8) + '…' : 'todas as empresas'} · ${MAX_TENT} followup${MAX_TENT !== 1 ? 's' : ''}`;
                 document.getElementById('conn-dot').classList.add('on');
                 document.getElementById('conn-label').textContent = 'conectado';
                 document.getElementById('conn-proj').textContent = 'oatihdndhcouXdqhantw';
@@ -1493,10 +1610,12 @@
 
         /* ── INIT ── */
         COMPANY = getUrlCompany();
+        MAX_TENT = getUrlMax();
         if (COMPANY) {
             document.getElementById('comp-inp').value = COMPANY;
             document.getElementById('company-label').textContent = COMPANY.slice(0, 14) + '…';
         }
+        document.getElementById('max-inp').value = MAX_TENT;
         loadData();
         setInterval(loadData, 30000);
     </script>
