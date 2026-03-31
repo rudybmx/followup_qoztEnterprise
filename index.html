@@ -311,7 +311,7 @@
         /* ─── METRICS ─── */
         .metrics-grid {
             display: grid;
-            grid-template-columns: repeat(6, minmax(0, 1fr));
+            grid-template-columns: repeat(9, minmax(0, 1fr));
             gap: 10px;
             margin-bottom: 22px;
         }
@@ -800,6 +800,27 @@
             background: var(--red);
         }
 
+        .pill-ganho {
+            background: rgba(14,122,78,0.12);
+            color: #0e7a4e;
+            border: 1px solid rgba(14,122,78,0.25);
+        }
+        .pill-ganho .pill-dot { background: #12a368; }
+
+        .pill-perca {
+            background: rgba(185,28,28,0.10);
+            color: #b91c1c;
+            border: 1px solid rgba(185,28,28,0.22);
+        }
+        .pill-perca .pill-dot { background: #b91c1c; }
+
+        .pill-perdido {
+            background: rgba(0,0,0,0.05);
+            color: #6b7280;
+            border: 1px solid rgba(0,0,0,0.12);
+        }
+        .pill-perdido .pill-dot { background: #9ca3af; }
+
         /* ─── PROGRESS ─── */
         .prog-row {
             display: flex;
@@ -984,6 +1005,119 @@
         }
 
         /* ─── RESPONSIVE ─── */
+        /* ─── KANBAN ─── */
+        .kanban-col {
+            min-width: 220px;
+            max-width: 220px;
+            background: var(--bg3);
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            flex-shrink: 0;
+        }
+        .kanban-col-header {
+            padding: 12px 14px 10px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .kanban-col-title {
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--text2);
+            text-transform: uppercase;
+            letter-spacing: 0.07em;
+        }
+        .kanban-col-count {
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--text3);
+            background: var(--bg4);
+            padding: 1px 7px;
+            border-radius: 99px;
+        }
+        .kanban-cards {
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            min-height: 80px;
+            max-height: 70vh;
+            overflow-y: auto;
+        }
+        .kanban-card {
+            background: var(--bg2);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 12px;
+            cursor: default;
+            transition: box-shadow .14s, border-color .14s;
+        }
+        .kanban-card:hover {
+            box-shadow: var(--shadow2);
+            border-color: var(--border2);
+        }
+        .kanban-card-phone {
+            font-family: var(--mono);
+            font-size: 11px;
+            font-weight: 500;
+            color: var(--text);
+            margin-bottom: 5px;
+        }
+        .kanban-card-agent {
+            font-size: 10px;
+            color: var(--text3);
+            margin-bottom: 8px;
+        }
+        .kanban-card-resumo {
+            font-size: 11px;
+            color: var(--text2);
+            line-height: 1.4;
+            margin-bottom: 8px;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+        .kanban-card-footer {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .temp-tag {
+            font-size: 9px;
+            font-weight: 700;
+            padding: 2px 7px;
+            border-radius: 99px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        .temp-quente { background: rgba(185,28,28,0.1);  color: var(--red);   border: 1px solid rgba(185,28,28,0.2); }
+        .temp-morno  { background: rgba(180,83,9,0.1);   color: var(--amber); border: 1px solid rgba(180,83,9,0.2);  }
+        .temp-frio   { background: rgba(29,78,216,0.08); color: var(--blue);  border: 1px solid rgba(29,78,216,0.15);}
+        .kanban-card-time {
+            font-size: 9px;
+            color: var(--text3);
+            font-family: var(--mono);
+        }
+        .kanban-chat-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 22px;
+            height: 22px;
+            border-radius: 6px;
+            color: var(--text3);
+            text-decoration: none;
+            transition: all .14s;
+            flex-shrink: 0;
+        }
+        .kanban-chat-btn:hover {
+            color: var(--green);
+            background: var(--green-bg);
+        }
+
+        @media (max-width: 1200px) {
         @media (max-width: 1200px) {
             .metrics-grid {
                 grid-template-columns: repeat(3, 1fr);
@@ -1028,7 +1162,7 @@
         </div>
         <nav class="nav">
             <div class="nav-section">Principal</div>
-            <div class="nav-item active">
+            <div class="nav-item active" id="nav-followup" onclick="showView('followup')">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <circle cx="12" cy="12" r="3" />
                     <path
@@ -1036,8 +1170,13 @@
                 </svg>
                 Follow-up
             </div>
-            <div class="nav-item"
-                onclick="sendPrompt('Me mostre quais leads estão vencidos e precisam de atenção agora')">
+            <div class="nav-item" id="nav-resgate" onclick="showView('resgate')">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
+                </svg>
+                Resgate
+            </div>
+            <div class="nav-item" id="nav-alertas" onclick="showView('alertas')">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <path
                         d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
@@ -1078,6 +1217,9 @@
     <!-- MAIN -->
     <main class="main">
 
+        <!-- VIEW: FOLLOWUP -->
+        <div id="view-followup" class="view">
+
         <!-- TOPBAR -->
         <div class="topbar">
             <div>
@@ -1086,6 +1228,8 @@
             </div>
             <div class="topbar-right">
                 <div class="last-upd" id="last-upd">—</div>
+                <select id="period-sel" class="fsel" onchange="onPeriodChange()" style="font-size:12px;padding:7px 13px;border-radius:8px;box-shadow:var(--shadow)">
+                </select>
                 <button class="company-btn">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
@@ -1159,6 +1303,30 @@
                 <div class="metric-value green" id="m-taxa">—%</div>
                 <div class="metric-sub">do total cadastrado</div>
             </div>
+            <div class="metric">
+                <div class="metric-label">Ganhos</div>
+                <div class="metric-value green" id="m-ganho">—</div>
+                <div class="metric-sub">convertidos</div>
+                <div class="metric-line" style="background:rgba(14,122,78,0.08)">
+                    <div id="ml-ganho" style="height:3px;border-radius:99px;background:var(--green2);width:0%;transition:width .5s"></div>
+                </div>
+            </div>
+            <div class="metric">
+                <div class="metric-label">Percas</div>
+                <div class="metric-value red" id="m-perca">—</div>
+                <div class="metric-sub">sem interesse</div>
+                <div class="metric-line" style="background:var(--red-bg)">
+                    <div id="ml-perca" style="height:3px;border-radius:99px;background:var(--red);width:0%;transition:width .5s"></div>
+                </div>
+            </div>
+            <div class="metric">
+                <div class="metric-label">Perdidos</div>
+                <div class="metric-value neutral" id="m-perdido">—</div>
+                <div class="metric-sub">esgotaram tentativas</div>
+                <div class="metric-line" style="background:rgba(0,0,0,0.04)">
+                    <div id="ml-perdido" style="height:3px;border-radius:99px;background:#9ca3af;width:0%;transition:width .5s"></div>
+                </div>
+            </div>
         </div>
 
         <!-- ROW 1: chart + agents -->
@@ -1205,6 +1373,9 @@
                     <button class="fb" onclick="setF('vencidos',this)">Vencidos</button>
                     <button class="fb" onclick="setF('encerrados',this)">Encerrados</button>
                     <button class="fb" onclick="setF('esgotados',this)">Esgotados</button>
+                    <button class="fb" onclick="setF('ganhos',this)">Ganhos</button>
+                    <button class="fb" onclick="setF('percas',this)">Percas</button>
+                    <button class="fb" onclick="setF('perdidos',this)">Perdidos</button>
                     <select class="fsel" id="ag-sel" onchange="renderTable()">
                         <option value="">Todos os agentes</option>
                     </select>
@@ -1221,17 +1392,52 @@
                                 <th>Próx. envio</th>
                                 <th>Últ. contato</th>
                                 <th>Status</th>
+                                <th>Fechamento</th>
                             </tr>
                         </thead>
                         <tbody id="tbl-body">
                             <tr>
-                                <td colspan="7"
+                                <td colspan="8"
                                     style="text-align:center;padding:24px;color:var(--text3);font-style:italic">
                                     carregando...</td>
                             </tr>
                         </tbody>
                     </table>
                 </div>
+            </div>
+        </div>
+
+        </div><!-- end view-followup -->
+
+        <!-- VIEW: RESGATE -->
+        <div id="view-resgate" class="view" style="display:none">
+            <div style="margin-bottom:24px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px">
+                <div>
+                    <div class="page-title">Resgate de Leads</div>
+                    <div class="page-sub" id="resgate-sub">kanban por fase de followup</div>
+                </div>
+                <div style="display:flex;gap:8px;align-items:center">
+                    <select id="resgate-agente" class="fsel" onchange="renderKanban()">
+                        <option value="">Todos os agentes</option>
+                    </select>
+                    <select id="resgate-temp" class="fsel" onchange="renderKanban()">
+                        <option value="">Todas as temperaturas</option>
+                        <option value="quente">🔴 Quente</option>
+                        <option value="morno">🟡 Morno</option>
+                        <option value="frio">🔵 Frio</option>
+                    </select>
+                </div>
+            </div>
+
+            <div id="kanban-board" style="display:flex;gap:12px;overflow-x:auto;padding-bottom:16px;align-items:flex-start">
+            </div>
+        </div>
+
+        <!-- VIEW: ALERTAS -->
+        <div id="view-alertas" class="view" style="display:none">
+            <div class="empty" style="padding:60px">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="width:36px;height:36px;margin:0 auto 12px;display:block;opacity:.3"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                Em breve
             </div>
         </div>
 
@@ -1400,11 +1606,64 @@
         });
         /* ── FETCH ── */
         async function fetchData() {
-            let url = `${SB_URL}/rest/v1/followup_state?select=*&order=atualizado_em.desc&limit=1000`;
-            if (COMPANY) url += `&company_id=eq.${encodeURIComponent(COMPANY)}`;
-            const r = await fetch(url, { headers: { apikey: SB_KEY, Authorization: `Bearer ${SB_KEY}` } });
+            const periodVal = document.getElementById('period-sel')?.value || 'current';
+            const now = new Date();
+
+            let pStart, pEnd;
+            if (periodVal === 'current') {
+                pStart = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
+                pEnd   = new Date(now.getFullYear(), now.getMonth() + 1, 1).toISOString();
+            } else if (periodVal === 'all') {
+                pStart = '2020-01-01T00:00:00Z';
+                pEnd   = new Date(now.getFullYear() + 1, 0, 1).toISOString();
+            } else {
+                const [y, m] = periodVal.split('-').map(Number);
+                pStart = new Date(y, m - 1, 1).toISOString();
+                pEnd   = new Date(y, m, 1).toISOString();
+            }
+
+            const body = {
+                p_start: pStart,
+                p_end:   pEnd,
+                p_company_id: COMPANY || null
+            };
+
+            const r = await fetch(`${SB_URL}/rest/v1/rpc/get_followup_by_period`, {
+                method: 'POST',
+                headers: {
+                    apikey: SB_KEY,
+                    Authorization: `Bearer ${SB_KEY}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(body)
+            });
             if (!r.ok) throw new Error('HTTP ' + r.status);
             return r.json();
+        }
+
+        function buildPeriodOptions() {
+            const sel = document.getElementById('period-sel');
+            const now = new Date();
+            sel.innerHTML = '';
+
+            for (let i = 0; i < 6; i++) {
+                const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+                const label = d.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' });
+                const val = i === 0 ? 'current' : d.toISOString().slice(0, 7);
+                const opt = document.createElement('option');
+                opt.value = val;
+                opt.textContent = i === 0 ? `${label} (atual)` : label;
+                sel.appendChild(opt);
+            }
+
+            const all = document.createElement('option');
+            all.value = 'all';
+            all.textContent = 'Todo o histórico';
+            sel.appendChild(all);
+        }
+
+        function onPeriodChange() {
+            loadData();
         }
 
         /* ── UTILS ── */
@@ -1423,7 +1682,7 @@
             return m > 0 ? `em ${Math.round(Math.abs(m) / 1440)}d` : `há ${Math.round(Math.abs(m) / 1440)}d`;
         }
         function status(r) {
-            if (!r.ativo) return r.tentativa >= 8 ? 'esgotado' : 'encerrado';
+            if (!r.ativo) return r.tentativa >= (r.max_tentativas || 8) ? 'esgotado' : 'encerrado';
             if (r.proximo_envio && new Date(r.proximo_envio) < new Date()) return 'vencido';
             return 'ativo';
         }
@@ -1445,11 +1704,20 @@
             document.getElementById('m-enc').textContent = en;
             document.getElementById('m-tot').textContent = tot;
             document.getElementById('m-taxa').textContent = taxa + '%';
+            const ganho   = d.filter(r => r.status_fechamento === 'GANHO').length;
+            const perca   = d.filter(r => r.status_fechamento === 'PERCA').length;
+            const perdido = d.filter(r => r.status_fechamento === 'PERDIDO').length;
+            document.getElementById('m-ganho').textContent   = ganho;
+            document.getElementById('m-perca').textContent   = perca;
+            document.getElementById('m-perdido').textContent = perdido;
             if (tot) {
                 document.getElementById('ml-ativos').style.width = Math.round(at / tot * 100) + '%';
                 document.getElementById('ml-venc').style.width = Math.round(ve / tot * 100) + '%';
                 document.getElementById('ml-esg').style.width = Math.round(es / tot * 100) + '%';
                 document.getElementById('ml-enc').style.width = Math.round(en / tot * 100) + '%';
+                document.getElementById('ml-ganho').style.width   = Math.round(ganho/tot*100)+'%';
+                document.getElementById('ml-perca').style.width   = Math.round(perca/tot*100)+'%';
+                document.getElementById('ml-perdido').style.width = Math.round(perdido/tot*100)+'%';
             }
         }
 
@@ -1544,6 +1812,12 @@
             btn.classList.add('active');
             renderTable();
         }
+        function fechamentoPill(sf) {
+            if (sf === 'GANHO') return '<span class="pill pill-ganho"><span class="pill-dot"></span>ganho</span>';
+            if (sf === 'PERCA') return '<span class="pill pill-perca"><span class="pill-dot"></span>perca</span>';
+            if (sf === 'PERDIDO') return '<span class="pill pill-perdido"><span class="pill-dot"></span>perdido</span>';
+            return '<span style="color:var(--text3);font-size:11px">—</span>';
+        }
         function renderTable() {
             const ag = document.getElementById('ag-sel').value;
             const q = document.getElementById('srch').value.toLowerCase();
@@ -1554,6 +1828,9 @@
             else if (FILTER === 'esgotados') rows = rows.filter(r => status(r) === 'esgotado');
             if (ag) rows = rows.filter(r => r.agente_id === ag);
             if (q) rows = rows.filter(r => (r.telefone || '').includes(q) || (r.agente_id || '').toLowerCase().includes(q));
+            if (FILTER === 'ganhos') rows = rows.filter(r => r.status_fechamento === 'GANHO');
+            else if (FILTER === 'percas') rows = rows.filter(r => r.status_fechamento === 'PERCA');
+            else if (FILTER === 'perdidos') rows = rows.filter(r => r.status_fechamento === 'PERDIDO');
 
             const n = rows.length;
             document.getElementById('tbl-count').textContent = n + ' registro' + (n !== 1 ? 's' : '') + (n > 100 ? ' (top 100)' : '');
@@ -1567,7 +1844,7 @@
 
             const tbody = document.getElementById('tbl-body');
             if (!n) {
-                tbody.innerHTML = `<tr><td colspan="7"><div class="empty">
+                tbody.innerHTML = `<tr><td colspan="8"><div class="empty">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
       Nenhum registro encontrado
     </div></td></tr>`;
@@ -1585,8 +1862,126 @@
       <td class="mono">${rel(r.proximo_envio)}</td>
       <td class="mono">${rel(r.ultimo_contato)}</td>
       <td>${pills[status(r)]}</td>
+      <td>${fechamentoPill(r.status_fechamento)}</td>
     </tr>`;
             }).join('');
+        }
+
+        /* ── VIEWS ── */
+        function showView(name) {
+            document.querySelectorAll('.view').forEach(v => v.style.display = 'none');
+            const el = document.getElementById('view-' + name);
+            if (el) el.style.display = 'block';
+            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+            const navEl = document.getElementById('nav-' + name);
+            if (navEl) navEl.classList.add('active');
+            if (name === 'resgate') renderKanban();
+        }
+
+        /* ── KANBAN ── */
+        function renderKanban() {
+            if (!DATA.length) return;
+
+            const agFilter   = document.getElementById('resgate-agente')?.value || '';
+            const tempFilter = document.getElementById('resgate-temp')?.value || '';
+
+            let leads = DATA.filter(r => r.ativo);
+            if (agFilter)   leads = leads.filter(r => r.agente_id === agFilter);
+            if (tempFilter) leads = leads.filter(r => r.temperatura === tempFilter);
+
+            const agSel = document.getElementById('resgate-agente');
+            const prevAg = agSel?.value;
+            if (agSel) {
+                const agentes = [...new Set(DATA.map(r => r.agente_id).filter(Boolean))];
+                agSel.innerHTML = '<option value="">Todos os agentes</option>';
+                agentes.forEach(a => {
+                    agSel.innerHTML += `<option value="${a}"${prevAg===a?' selected':''}>${a}</option>`;
+                });
+            }
+
+            const maxTent = Math.max(...DATA.map(r => r.max_tentativas || 8), 1);
+
+            const colunas = [];
+            colunas.push({ key: 0, label: '1º Followup' });
+            for (let i = 1; i <= maxTent; i++) {
+                const ord = i === 1 ? '1º' : i === 2 ? '2º' : i === 3 ? '3º' : `${i}º`;
+                colunas.push({ key: i, label: `${ord} Dia Resgate` });
+            }
+
+            const grupos = {};
+            colunas.forEach(c => grupos[c.key] = []);
+            leads.forEach(r => {
+                const t = r.tentativa || 0;
+                if (grupos[t] !== undefined) grupos[t].push(r);
+                else grupos[colunas[colunas.length-1].key].push(r);
+            });
+
+            const board = document.getElementById('kanban-board');
+            board.innerHTML = colunas.map(col => {
+                const cards = grupos[col.key] || [];
+                const cardsHtml = cards.length
+                    ? cards.map(r => {
+                        const tempClass = r.temperatura ? `temp-${r.temperatura}` : 'temp-frio';
+                        const tempLabel = r.temperatura || 'frio';
+                        const resumo = r.ultimo_resumo || 'Sem resumo disponível';
+                        const chatIcon = r.session_id
+                            ? `<a href="https://qozt.wts.chat/chat2/sessions/${r.session_id}" target="_blank" class="kanban-chat-btn" title="Ver conversa">
+                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/>
+                                </svg>
+                            </a>`
+                            : '';
+                        return `<div class="kanban-card">
+                            <div class="kanban-card-phone">${phone(r.telefone)}</div>
+                            <div class="kanban-card-agent">${r.agente_id || '—'}</div>
+                            <div class="kanban-card-resumo">${resumo}</div>
+                            <div class="kanban-card-footer">
+                                <span class="temp-tag ${tempClass}">${tempLabel}</span>
+                                <span class="kanban-card-time">${rel(r.ultimo_contato)}</span>
+                                ${chatIcon}
+                            </div>
+                        </div>`;
+                    }).join('')
+                    : '<div style="padding:12px;font-size:11px;color:var(--text3);text-align:center">vazio</div>';
+
+                return `<div class="kanban-col">
+                    <div class="kanban-col-header">
+                        <div class="kanban-col-title">${col.label}</div>
+                        <div class="kanban-col-count">${cards.length}</div>
+                    </div>
+                    <div class="kanban-cards">${cardsHtml}</div>
+                </div>`;
+            }).join('');
+
+            document.getElementById('resgate-sub').textContent =
+                `${leads.length} lead${leads.length!==1?'s':''} ativos em resgate`;
+        }
+
+        async function enrichWithSessionId() {
+            if (!DATA.length) return;
+            const telefones = DATA.map(r => r.telefone).filter(Boolean);
+            if (!telefones.length) return;
+            const uniquePhones = [...new Set(telefones)];
+            const batchSize = 100;
+            const sessionMap = {};
+            for (let i = 0; i < uniquePhones.length; i += batchSize) {
+                const batch = uniquePhones.slice(i, i + batchSize);
+                const phonesStr = batch.map(t => `"${t}"`).join(',');
+                try {
+                    const r = await fetch(`${SB_URL}/rest/v1/followup_state?select=telefone,session_id&telefone=in.(${phonesStr})`, {
+                        headers: { apikey: SB_KEY, Authorization: `Bearer ${SB_KEY}` }
+                    });
+                    if (r.ok) {
+                        const rows = await r.json();
+                        rows.forEach(row => {
+                            if (row.session_id) sessionMap[row.telefone] = row.session_id;
+                        });
+                    }
+                } catch (e) { console.warn('Erro ao buscar session_id:', e); }
+            }
+            DATA.forEach(r => {
+                if (sessionMap[r.telefone]) r.session_id = sessionMap[r.telefone];
+            });
         }
 
         /* ── LOAD ── */
@@ -1594,10 +1989,16 @@
             document.getElementById('ref-icon').classList.add('spin');
             try {
                 DATA = await fetchData();
+                // busca session_id da tabela original
+                await enrichWithSessionId();
                 metrics(DATA); chart(DATA); agents(DATA); proximos(DATA); renderTable();
+                const viewResgate = document.getElementById('view-resgate');
+                if (viewResgate && viewResgate.style.display !== 'none') renderKanban();
                 const now = new Date();
                 document.getElementById('last-upd').textContent = `atualizado ${now.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}`;
-                document.getElementById('page-sub').textContent = `${DATA.length} lead${DATA.length !== 1 ? 's' : ''} · ${COMPANY ? 'company: ' + COMPANY.slice(0, 8) + '…' : 'todas as empresas'} · ${MAX_TENT} followup${MAX_TENT !== 1 ? 's' : ''}`;
+                const periodLabel = document.getElementById('period-sel')?.selectedOptions[0]?.textContent || '';
+                document.getElementById('page-sub').textContent =
+                    `${DATA.length} lead${DATA.length !== 1 ? 's' : ''} · ${periodLabel} · ${COMPANY ? 'company: ' + COMPANY.slice(0, 8) + '…' : 'todas as empresas'}`;
                 document.getElementById('conn-dot').classList.add('on');
                 document.getElementById('conn-label').textContent = 'conectado';
                 document.getElementById('conn-proj').textContent = 'oatihdndhcouXdqhantw';
@@ -1611,6 +2012,7 @@
         }
 
         /* ── INIT ── */
+        buildPeriodOptions();
         COMPANY = getUrlCompany();
         MAX_TENT = getUrlMax();
         if (COMPANY) {
@@ -1618,6 +2020,7 @@
             document.getElementById('company-label').textContent = COMPANY.slice(0, 14) + '…';
         }
         document.getElementById('max-inp').value = MAX_TENT;
+        showView('followup');
         loadData();
         setInterval(loadData, 30000);
     </script>
