@@ -1458,9 +1458,51 @@
 
         <!-- VIEW: CAMPANHAS -->
         <div id="view-campanhas" class="view" style="display:none">
-            <div class="empty" style="padding:60px">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="width:36px;height:36px;margin:0 auto 12px;display:block;opacity:.3"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
-                Em breve
+            <div style="margin-bottom:24px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px">
+                <div>
+                    <div class="page-title">Campanhas</div>
+                    <div class="page-sub" id="camp-sub">rastreamento de origem dos leads</div>
+                </div>
+                <div style="display:flex;gap:8px;align-items:center">
+                    <select id="camp-source" class="fsel" onchange="renderCampanhas()">
+                        <option value="">Todas as fontes</option>
+                    </select>
+                </div>
+            </div>
+
+            <div id="camp-metrics" style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:20px"></div>
+
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-title">Por Campanha / Anúncio</div>
+                    <div class="card-badge" id="camp-badge">—</div>
+                </div>
+                <div class="tbl-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Fonte</th>
+                                <th>Headline</th>
+                                <th>Leads</th>
+                                <th>Ativos</th>
+                                <th>Ganhos</th>
+                                <th>Percas</th>
+                                <th>Perdidos</th>
+                                <th>Conv. %</th>
+                                <th>Temp. média</th>
+                            </tr>
+                        </thead>
+                        <tbody id="camp-tbody"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="card" style="margin-top:14px">
+                <div class="card-header">
+                    <div class="card-title">Leads sem rastreamento UTM</div>
+                    <div class="card-badge" id="camp-no-utm-badge">—</div>
+                </div>
+                <div id="camp-no-utm" style="padding:12px 0;font-size:12px;color:var(--text3);text-align:center">—</div>
             </div>
         </div>
 
@@ -1500,11 +1542,6 @@
 
             <!-- FORM (bloqueado por padrão) -->
             <div id="modal-form" style="display:none">
-                <div style="margin-bottom:12px">
-                    <div style="font-size:11px;color:var(--text3);margin-bottom:5px;font-weight:500">Nome do cliente
-                    </div>
-                    <input class="modal-inp" id="nome-inp" placeholder="Ex: ODC Cachoeirinha" style="margin-bottom:0">
-                </div>
                 <div style="margin-bottom:12px">
                     <div style="font-size:11px;color:var(--text3);margin-bottom:5px;font-weight:500">Nome do cliente
                     </div>
@@ -1907,6 +1944,7 @@
             const navEl = document.getElementById('nav-' + name);
             if (navEl) navEl.classList.add('active');
             if (name === 'resgate') renderKanban();
+            if (name === 'campanhas') renderCampanhas();
         }
 
         /* ── KANBAN ── */
@@ -1988,6 +2026,115 @@
                 `${leads.length} lead${leads.length!==1?'s':''} ativos em resgate`;
         }
 
+        function renderCampanhas() {
+            if (!DATA.length) return;
+
+            const sourceFilter = document.getElementById('camp-source')?.value || '';
+
+            const comUtm    = DATA.filter(r => r.utm_data && Array.isArray(r.utm_data) && r.utm_data[0]);
+            const semUtm    = DATA.filter(r => !r.utm_data || !Array.isArray(r.utm_data) || !r.utm_data[0]);
+
+            const sourceSel = document.getElementById('camp-source');
+            const prevSource = sourceSel?.value;
+            if (sourceSel) {
+                const fontes = [...new Set(comUtm.map(r => r.utm_data[0].source).filter(Boolean))];
+                sourceSel.innerHTML = '<option value="">Todas as fontes</option>';
+                fontes.forEach(f => {
+                    sourceSel.innerHTML += `<option value="${f}"${prevSource===f?' selected':''}>${f}</option>`;
+                });
+            }
+
+            let filtrados = comUtm;
+            if (sourceFilter) filtrados = filtrados.filter(r => r.utm_data[0].source === sourceFilter);
+
+            const totalComUtm = filtrados.length;
+            const totalGanho  = filtrados.filter(r => r.status_fechamento === 'GANHO').length;
+            const totalAtivo  = filtrados.filter(r => r.ativo).length;
+            const convRate    = totalComUtm ? Math.round(totalGanho / totalComUtm * 100) : 0;
+
+            document.getElementById('camp-metrics').innerHTML = [
+                { label: 'Leads rastreados', val: totalComUtm, cls: 'neutral' },
+                { label: 'Ativos',           val: totalAtivo,  cls: 'green'   },
+                { label: 'Convertidos',      val: totalGanho,  cls: 'green'   },
+                { label: 'Taxa conv.',        val: convRate+'%',cls: convRate > 20 ? 'green' : convRate > 10 ? 'amber' : 'red' }
+            ].map(m => `
+                <div class="metric">
+                    <div class="metric-label">${m.label}</div>
+                    <div class="metric-value ${m.cls}">${m.val}</div>
+                </div>
+            `).join('');
+
+            const grupos = {};
+            filtrados.forEach(r => {
+                const utm = r.utm_data[0];
+                const key = `${utm.source || '?'}|||${utm.headline || utm.campaign || 'Sem título'}`;
+                if (!grupos[key]) grupos[key] = {
+                    source: utm.source || '?',
+                    headline: utm.headline || utm.campaign || 'Sem título',
+                    leads: [], total: 0, ativos: 0, ganhos: 0, percas: 0, perdidos: 0,
+                    temps: []
+                };
+                grupos[key].total++;
+                grupos[key].leads.push(r);
+                if (r.ativo) grupos[key].ativos++;
+                if (r.status_fechamento === 'GANHO')   grupos[key].ganhos++;
+                if (r.status_fechamento === 'PERCA')   grupos[key].percas++;
+                if (r.status_fechamento === 'PERDIDO') grupos[key].perdidos++;
+                if (r.temperatura) grupos[key].temps.push(r.temperatura);
+            });
+
+            function tempPred(temps) {
+                if (!temps.length) return '—';
+                const cnt = { quente: 0, morno: 0, frio: 0 };
+                temps.forEach(t => { if (cnt[t] !== undefined) cnt[t]++; });
+                const max = Math.max(cnt.quente, cnt.morno, cnt.frio);
+                if (cnt.quente === max) return '<span class="temp-tag temp-quente">quente</span>';
+                if (cnt.morno  === max) return '<span class="temp-tag temp-morno">morno</span>';
+                return '<span class="temp-tag temp-frio">frio</span>';
+            }
+
+            const rows = Object.values(grupos).sort((a, b) => b.total - a.total);
+            document.getElementById('camp-badge').textContent = rows.length + ' campanha' + (rows.length !== 1 ? 's' : '');
+
+            const sourceIcon = s => {
+                if (!s) return '—';
+                if (s.includes('FACEBOOK') || s.includes('META')) return '📘 ' + s;
+                if (s.includes('GOOGLE'))  return '🔍 ' + s;
+                if (s.includes('INSTAGRAM')) return '📸 ' + s;
+                return '🌐 ' + s;
+            };
+
+            const tbody = document.getElementById('camp-tbody');
+            if (!rows.length) {
+                tbody.innerHTML = `<tr><td colspan="9"><div class="empty">Nenhum lead com UTM no período</div></td></tr>`;
+            } else {
+                tbody.innerHTML = rows.map(g => {
+                    const conv = g.total ? Math.round(g.ganhos / g.total * 100) : 0;
+                    const convCls = conv > 20 ? 'c-green' : conv > 10 ? 'c-amber' : 'c-red';
+                    const headlineTrunc = g.headline.length > 40 ? g.headline.slice(0, 40) + '…' : g.headline;
+                    return `<tr>
+                        <td><span style="font-size:11px;font-weight:600">${sourceIcon(g.source)}</span></td>
+                        <td style="max-width:200px" title="${g.headline}"><span style="font-size:11px">${headlineTrunc}</span></td>
+                        <td class="mono" style="color:var(--text);font-weight:600">${g.total}</td>
+                        <td class="mono">${g.ativos}</td>
+                        <td class="mono" style="color:var(--green)">${g.ganhos}</td>
+                        <td class="mono" style="color:var(--red)">${g.percas}</td>
+                        <td class="mono" style="color:var(--text3)">${g.perdidos}</td>
+                        <td><span class="${convCls}" style="font-size:12px;font-weight:700">${conv}%</span></td>
+                        <td>${tempPred(g.temps)}</td>
+                    </tr>`;
+                }).join('');
+            }
+
+            document.getElementById('camp-no-utm-badge').textContent = semUtm.length + ' lead' + (semUtm.length !== 1 ? 's' : '');
+            document.getElementById('camp-no-utm').textContent = semUtm.length
+                ? `${semUtm.length} lead${semUtm.length !== 1 ? 's' : ''} sem rastreamento de campanha no período selecionado`
+                : 'Todos os leads possuem rastreamento UTM';
+
+            document.getElementById('camp-sub').textContent =
+                `${totalComUtm} lead${totalComUtm !== 1 ? 's' : ''} rastreados · ${rows.length} campanha${rows.length !== 1 ? 's' : ''}`;
+        }
+
         async function enrichWithSessionId() {
             if (!DATA.length) return;
             const telefones = DATA.map(r => r.telefone).filter(Boolean);
@@ -2025,6 +2172,8 @@
                 metrics(DATA); chart(DATA); agents(DATA); proximos(DATA); renderTable();
                 const viewResgate = document.getElementById('view-resgate');
                 if (viewResgate && viewResgate.style.display !== 'none') renderKanban();
+                const viewCampanhas = document.getElementById('view-campanhas');
+                if (viewCampanhas && viewCampanhas.style.display !== 'none') renderCampanhas();
                 const now = new Date();
                 document.getElementById('last-upd').textContent = `atualizado ${now.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}`;
                 const periodLabel = document.getElementById('period-sel')?.selectedOptions[0]?.textContent || '';
