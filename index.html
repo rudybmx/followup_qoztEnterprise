@@ -1900,6 +1900,17 @@
             document.getElementById('resumo-modal-text').textContent = resumo;
             document.getElementById('resumo-modal').classList.add('open');
         }
+        function chatIcon(r) {
+            if (!r.sessao_id) return '';
+            const url = `https://qozt.wts.chat/chat2/sessions/${r.sessao_id}`;
+            return `<button onclick="event.stopPropagation();window.open('${url}','_blank')"
+                style="background:none;border:none;cursor:pointer;padding:2px;opacity:0.45;vertical-align:middle"
+                title="Abrir conversa">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M21 11.5a8.38 8.38 0 01-.9 3.8 8.5 8.5 0 01-7.6 4.7 8.38 8.38 0 01-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 01-.9-3.8 8.5 8.5 0 014.7-7.6 8.38 8.38 0 013.8-.9h.5a8.48 8.48 0 018 8v.5z"/>
+                </svg>
+            </button>`;
+        }
 
         /* ── METRICS ── */
         function metrics(d) {
@@ -2160,6 +2171,7 @@
       <td>${pills[status(r)]}</td>
       <td>${fechamentoPill(r.status_fechamento)}</td>
       <td>${tempPillTable(r.temperatura)}</td>
+      <td style="width:32px;text-align:center">${chatIcon(r)}</td>
     </tr>`;
             }).join('');
         }
