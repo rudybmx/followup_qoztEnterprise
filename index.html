@@ -741,6 +741,10 @@
             vertical-align: middle;
         }
 
+        #camp-tbody tr { height: 48px; }
+        #camp-tbody td { vertical-align: middle; padding: 10px 10px; }
+        #camp-tbody tr:nth-child(even) td { background: var(--bg3); }
+
         th:first-child, th:nth-child(2) {
             width: 28px;
             padding: 7px 4px;
@@ -1548,16 +1552,16 @@
                     <table>
                         <thead>
                             <tr>
-                                <th>Fonte</th>
+                                <th style="min-width:120px">Fonte</th>
                                 <th>Headline</th>
-                                <th>Leads</th>
-                                <th>Ativos</th>
-                                <th>Ganhos</th>
-                                <th>Percas</th>
-                                <th>Perdidos</th>
-                                <th>Conv. %</th>
+                                <th style="text-align:center">Leads</th>
+                                <th style="text-align:center">Ativos</th>
+                                <th style="text-align:center">Ganhos</th>
+                                <th style="text-align:center">Percas</th>
+                                <th style="text-align:center">Perdidos</th>
+                                <th style="text-align:center">Conv. %</th>
                                 <th>Temp. média</th>
-                                <th>Ações</th>
+                                <th style="width:60px;text-align:center">Ações</th>
                             </tr>
                         </thead>
                         <tbody id="camp-tbody"></tbody>
@@ -2340,14 +2344,15 @@
             const convRate    = totalComUtm ? Math.round(totalGanho / totalComUtm * 100) : 0;
 
             document.getElementById('camp-metrics').innerHTML = [
-                { label: 'Leads rastreados', val: totalComUtm, cls: 'neutral' },
-                { label: 'Ativos',           val: totalAtivo,  cls: 'green'   },
-                { label: 'Convertidos',      val: totalGanho,  cls: 'green'   },
-                { label: 'Taxa conv.',        val: convRate+'%',cls: convRate > 20 ? 'green' : convRate > 10 ? 'amber' : 'red' }
+                { label: 'Leads rastreados', val: totalComUtm, cls: 'neutral', sub: 'com UTM no período' },
+                { label: 'Ativos',           val: totalAtivo,  cls: 'green',   sub: 'em andamento' },
+                { label: 'Convertidos',      val: totalGanho,  cls: 'green',   sub: 'status GANHO' },
+                { label: 'Taxa conv.',        val: convRate+'%',cls: convRate > 20 ? 'green' : convRate > 10 ? 'amber' : 'neutral', sub: 'leads → ganho' }
             ].map(m => `
                 <div class="metric">
                     <div class="metric-label">${m.label}</div>
                     <div class="metric-value ${m.cls}">${m.val}</div>
+                    <div class="metric-sub">${m.sub}</div>
                 </div>
             `).join('');
 
@@ -2416,29 +2421,37 @@
             } else {
                 tbody.innerHTML = rows.map(g => {
                     const conv = g.total ? Math.round(g.ganhos / g.total * 100) : 0;
-                    const convCls = conv > 20 ? 'c-green' : conv > 10 ? 'c-amber' : 'c-red';
-                    const headlineTrunc = g.headline.length > 40 ? g.headline.slice(0, 40) + '…' : g.headline;
+                    const convCls   = conv > 20 ? 'var(--green)' : conv > 10 ? 'var(--amber)' : 'var(--text2)';
+                    const convBg    = conv > 20 ? 'var(--green-bg)' : conv > 10 ? 'var(--amber-bg)' : 'var(--bg3)';
+                    const convBd    = conv > 20 ? 'var(--green-bd)' : conv > 10 ? 'rgba(180,83,9,0.2)' : 'var(--border)';
+                    const headlineTrunc = g.headline;
                     return `<tr>
                         <td><span style="font-size:11px;font-weight:600">${sourceIcon(g.source)}</span></td>
-                        <td style="max-width:200px">
-                            <span style="font-size:11px">${headlineTrunc}</span>
-                            ${g.content ? `
-                                <button onclick="event.stopPropagation();showAdContent(${JSON.stringify(g.content).replace(/'/g,"\\'")})"
-                                    style="background:none;border:none;cursor:pointer;padding:0 0 0 5px;vertical-align:middle;opacity:0.5" title="Ver descrição do anúncio">
-                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                        <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
-                                    </svg>
-                                </button>
-                            ` : ''}
+                        <td style="max-width:180px;min-width:120px">
+                            <div style="display:flex;align-items:center;gap:6px">
+                                <span style="font-size:11px;color:var(--text2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:140px;display:block" title="${g.headline}">${headlineTrunc}</span>
+                                ${g.content ? `
+                                    <button onclick="event.stopPropagation();showAdContent(${JSON.stringify(g.content).replace(/'/g,"\\'")})"
+                                        style="background:none;border:none;cursor:pointer;padding:2px;opacity:0.4;flex-shrink:0;vertical-align:middle" title="Ver descrição do anúncio">
+                                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+                                        </svg>
+                                    </button>
+                                ` : ''}
+                            </div>
                         </td>
-                        <td class="mono" style="color:var(--text);font-weight:600">${g.total}</td>
-                        <td class="mono">${g.ativos}</td>
-                        <td class="mono" style="color:var(--green)">${g.ganhos}</td>
-                        <td class="mono" style="color:var(--red)">${g.percas}</td>
-                        <td class="mono" style="color:var(--text3)">${g.perdidos}</td>
-                        <td><span class="${convCls}" style="font-size:12px;font-weight:700">${conv}%</span></td>
+                        <td class="mono" style="color:var(--text);font-weight:600;text-align:center">${g.total}</td>
+                        <td class="mono" style="text-align:center">${g.ativos}</td>
+                        <td class="mono" style="color:var(--green);text-align:center">${g.ganhos}</td>
+                        <td class="mono" style="color:var(--red);text-align:center">${g.percas}</td>
+                        <td class="mono" style="color:var(--text3);text-align:center">${g.perdidos}</td>
+                        <td style="text-align:center">
+                            <span style="font-size:11px;font-weight:700;color:${convCls};background:${convBg};border:1px solid ${convBd};padding:2px 8px;border-radius:99px">
+                                ${conv}%
+                            </span>
+                        </td>
                         <td>${tempPred(g.temps)}</td>
-                        <td>
+                        <td style="text-align:center">
                             <button onclick="showCampLeads(${JSON.stringify(g.leads.map(l=>({t:l.telefone,s:l.sessao_id})))})"
                                 style="background:none;border:none;cursor:pointer;padding:4px;opacity:0.5;vertical-align:middle" title="Ver conversas desta campanha">
                                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
