@@ -2523,7 +2523,7 @@
                 DATA = await fetchData();
                 // busca session_id da tabela original
                 await enrichWithSessionId();
-                metrics(DATA); chart(DATA); agents(DATA); proximos(DATA); renderTable();
+                metrics(DATA); chart(DATA); agents(DATA); renderTable();
                 const viewResgate = document.getElementById('view-resgate');
                 if (viewResgate && viewResgate.style.display !== 'none') renderKanban();
                 const viewCampanhas = document.getElementById('view-campanhas');
