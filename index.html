@@ -311,7 +311,7 @@
         /* ─── METRICS ─── */
         .metrics-grid {
             display: grid;
-            grid-template-columns: repeat(8, minmax(0, 1fr));
+            grid-template-columns: repeat(4, 1fr);
             gap: 10px;
             margin-bottom: 22px;
         }
@@ -320,7 +320,7 @@
             background: var(--bg2);
             border: 1px solid var(--border);
             border-radius: 12px;
-            padding: 12px 14px;
+            padding: 18px 20px;
             box-shadow: var(--shadow);
             transition: box-shadow .15s;
         }
@@ -339,7 +339,7 @@
         }
 
         .metric-value {
-            font-size: 24px;
+            font-size: 30px;
             font-weight: 700;
             line-height: 1;
             letter-spacing: -1px;
@@ -1177,7 +1177,7 @@
 
         @media (max-width: 1200px) {
             .metrics-grid {
-                grid-template-columns: repeat(3, 1fr);
+                grid-template-columns: repeat(4, 1fr);
             }
         }
 
@@ -1361,6 +1361,7 @@
                 <div class="metric-label">Total leads</div>
                 <div class="metric-value neutral" id="m-tot">—</div>
                 <div class="metric-sub">no sistema</div>
+                <div id="m-camp-inline" style="font-size:10px;color:var(--blue);font-weight:600;margin-top:4px"></div>
             </div>
             <div class="metric">
                 <div class="metric-label">Taxa encerramento</div>
@@ -1389,14 +1390,6 @@
                 <div class="metric-sub">esgotaram tentativas</div>
                 <div class="metric-line" style="background:rgba(0,0,0,0.04)">
                     <div id="ml-perdido" style="height:3px;border-radius:99px;background:#9ca3af;width:0%;transition:width .5s"></div>
-                </div>
-            </div>
-            <div class="metric">
-                <div class="metric-label">De Campanhas</div>
-                <div class="metric-value blue" id="m-camp">—</div>
-                <div class="metric-sub" id="m-camp-sub">do total</div>
-                <div class="metric-line" style="background:var(--blue-bg)">
-                    <div id="ml-camp" style="height:3px;border-radius:99px;background:var(--blue);width:0%;transition:width .5s"></div>
                 </div>
             </div>
         </div>
@@ -1948,12 +1941,11 @@
                     return Array.isArray(arr) && arr[0] && arr[0].source;
                 } catch(e) { return false; }
             }).length;
-            document.getElementById('m-camp').textContent = comUtm;
-            document.getElementById('m-camp-sub').textContent = tot
-                ? `${Math.round(comUtm / tot * 100)}% do total`
-                : 'do total';
-            if (tot) {
-                document.getElementById('ml-camp').style.width = Math.round(comUtm / tot * 100) + '%';
+            const campInline = document.getElementById('m-camp-inline');
+            if (campInline) {
+                campInline.textContent = comUtm
+                    ? `${comUtm} de campanhas (${Math.round(comUtm / tot * 100)}%)`
+                    : '';
             }
         }
 
