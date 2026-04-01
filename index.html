@@ -697,6 +697,35 @@
             color: var(--red);
         }
 
+        /* ─── CAMP PERIOD TABS ─── */
+        .camp-period-btn {
+            padding: 4px 12px;
+            border-radius: 6px;
+            border: 1px solid var(--border);
+            background: var(--bg2);
+            color: var(--text3);
+            font-size: 11px;
+            font-weight: 500;
+            cursor: pointer;
+            font-family: var(--font);
+            transition: all .12s;
+            white-space: nowrap;
+        }
+        .camp-period-btn:hover {
+            border-color: var(--border2);
+            color: var(--text2);
+        }
+        .camp-period-btn.active {
+            background: var(--text);
+            border-color: var(--text);
+            color: #fff;
+            font-weight: 600;
+        }
+        .camp-period-btn[data-val="all"].active {
+            background: var(--green);
+            border-color: var(--green);
+        }
+
         /* ─── TABLE ─── */
         .tbl-wrap {
             overflow-x: auto;
@@ -1525,15 +1554,42 @@
                     <div class="page-sub" id="camp-sub">rastreamento de origem dos leads</div>
                 </div>
                 <div style="display:flex;gap:8px;align-items:center">
-                    <select id="camp-period" class="fsel" onchange="renderCampanhas()" style="font-size:12px;padding:7px 13px;border-radius:8px;box-shadow:var(--shadow)">
-                    </select>
+                    <div id="camp-period-tabs" style="display:flex;flex-direction:column;gap:4px;align-items:flex-end">
+                        <div style="display:flex;gap:4px;flex-wrap:wrap;justify-content:flex-end" id="camp-period-btns"></div>
+                    </div>
                     <select id="camp-source" class="fsel" onchange="renderCampanhas()">
                         <option value="">Todas as fontes</option>
                     </select>
                 </div>
             </div>
 
-            <div id="camp-metrics" style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:20px"></div>
+            <div id="camp-metrics" style="display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:20px">
+                <div class="metric">
+                    <div class="metric-label">Total Recebidos</div>
+                    <div class="metric-value neutral" id="cm-total">—</div>
+                    <div class="metric-sub" id="cm-total-sub">no período</div>
+                </div>
+                <div class="metric">
+                    <div class="metric-label">De Campanhas</div>
+                    <div class="metric-value blue" id="cm-utm">—</div>
+                    <div class="metric-sub" id="cm-utm-sub">com rastreamento</div>
+                </div>
+                <div class="metric">
+                    <div class="metric-label">Ativos</div>
+                    <div class="metric-value green" id="cm-ativos">—</div>
+                    <div class="metric-sub">em andamento</div>
+                </div>
+                <div class="metric">
+                    <div class="metric-label">Convertidos</div>
+                    <div class="metric-value green" id="cm-ganhos">—</div>
+                    <div class="metric-sub" id="cm-ganhos-sub">taxa de ganho</div>
+                </div>
+                <div class="metric">
+                    <div class="metric-label">Percas</div>
+                    <div class="metric-value red" id="cm-percas">—</div>
+                    <div class="metric-sub" id="cm-percas-sub">sem interesse</div>
+                </div>
+            </div>
 
             <div class="card">
                 <div class="card-header">
@@ -1559,14 +1615,6 @@
                         <tbody id="camp-tbody"></tbody>
                     </table>
                 </div>
-            </div>
-
-            <div class="card" style="margin-top:14px">
-                <div class="card-header">
-                    <div class="card-title">Leads sem rastreamento UTM</div>
-                    <div class="card-badge" id="camp-no-utm-badge">—</div>
-                </div>
-                <div id="camp-no-utm" style="padding:12px 0;font-size:12px;color:var(--text3);text-align:center">—</div>
             </div>
         </div>
 
@@ -1670,7 +1718,7 @@
         const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9hdGloZG5kaGNvdXhkcWhhbnR3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjkwODc1NjksImV4cCI6MjA4NDY2MzU2OX0.00PCoHzUISJYrtjMd940dExN8y5iF8alhPTeX43lmXc';
 
         const CONFIG_HOOK = 'https://webhooks.qozt.com.br/webhook/9a790cbb-2924-4480-8fd8-1dfa2ce581d1';
-        let DATA = [], FILTER = 'todos', PROX_FILTER = 'all', COMPANY = '', MAX_TENT = 8, CAMP_LEADS_MAP = {};
+        let DATA = [], FILTER = 'todos', PROX_FILTER = 'all', COMPANY = '', MAX_TENT = 8, CAMP_LEADS_MAP = {}, CAMP_PERIOD = 'all';
 
         /* ── SENHA ── */
         const SENHA_CORRETA = 'Qozt@102030*';
@@ -2192,7 +2240,7 @@
             const navEl = document.getElementById('nav-' + name);
             if (navEl) navEl.classList.add('active');
             if (name === 'resgate') renderKanban();
-            if (name === 'campanhas') renderCampanhas();
+            if (name === 'campanhas') { buildCampPeriodTabs(); renderCampanhas(); }
         }
 
         /* ── KANBAN ── */
@@ -2302,7 +2350,7 @@
 
             const sourceFilter = document.getElementById('camp-source')?.value || '';
 
-            const campPeriodVal = document.getElementById('camp-period')?.value || 'current';
+            const campPeriodVal = CAMP_PERIOD || 'all';
             const now2 = new Date();
             let cpStart, cpEnd;
             if (campPeriodVal === 'current') {
@@ -2345,20 +2393,21 @@
             const totalComUtm = filtrados.length;
             const totalGanho  = filtrados.filter(r => r.status_fechamento === 'GANHO').length;
             const totalAtivo  = filtrados.filter(r => r.ativo).length;
-            const convRate    = totalComUtm ? Math.round(totalGanho / totalComUtm * 100) : 0;
+            const totalPerca  = filtrados.filter(r => r.status_fechamento === 'PERCA').length;
+            const totalPeriodo = dataFiltrada.length;
+            const pctUtm   = totalPeriodo ? Math.round(totalComUtm / totalPeriodo * 100) : 0;
+            const pctGanho = totalComUtm  ? Math.round(totalGanho  / totalComUtm  * 100) : 0;
+            const pctPerca = totalComUtm  ? Math.round(totalPerca  / totalComUtm  * 100) : 0;
 
-            document.getElementById('camp-metrics').innerHTML = [
-                { label: 'Leads rastreados', val: totalComUtm, cls: 'neutral', sub: 'com UTM no período' },
-                { label: 'Ativos',           val: totalAtivo,  cls: 'green',   sub: 'em andamento' },
-                { label: 'Convertidos',      val: totalGanho,  cls: 'green',   sub: 'status GANHO' },
-                { label: 'Taxa conv.',        val: convRate+'%',cls: convRate > 20 ? 'green' : convRate > 10 ? 'amber' : 'neutral', sub: 'leads → ganho' }
-            ].map(m => `
-                <div class="metric">
-                    <div class="metric-label">${m.label}</div>
-                    <div class="metric-value ${m.cls}">${m.val}</div>
-                    <div class="metric-sub">${m.sub}</div>
-                </div>
-            `).join('');
+            document.getElementById('cm-total').textContent    = totalPeriodo;
+            document.getElementById('cm-total-sub').textContent = totalPeriodo === 1 ? 'lead no período' : 'leads no período';
+            document.getElementById('cm-utm').textContent      = totalComUtm;
+            document.getElementById('cm-utm-sub').textContent  = `${pctUtm}% do total`;
+            document.getElementById('cm-ativos').textContent   = totalAtivo;
+            document.getElementById('cm-ganhos').textContent   = totalGanho;
+            document.getElementById('cm-ganhos-sub').textContent = pctGanho ? `${pctGanho}% de conv.` : 'taxa de ganho';
+            document.getElementById('cm-percas').textContent   = totalPerca;
+            document.getElementById('cm-percas-sub').textContent = pctPerca ? `${pctPerca}% sem interesse` : 'sem interesse';
 
             const grupos = {};
             filtrados.forEach(r => {
@@ -2368,6 +2417,7 @@
                     source: utm.source || '?',
                     headline: utm.headline || utm.campaign || 'Sem título',
                     content: utm.content || '',
+                    referralUrl: utm.referralUrl || null,
                     leads: [], total: 0, ativos: 0, ganhos: 0, percas: 0, perdidos: 0,
                     temps: []
                 };
@@ -2436,7 +2486,18 @@
                     const convBd    = conv > 20 ? 'var(--green-bd)' : conv > 10 ? 'rgba(180,83,9,0.2)' : 'var(--border)';
                     const headlineTrunc = g.headline;
                     return `<tr>
-                        <td><span style="font-size:11px;font-weight:600">${sourceIcon(g.source)}</span></td>
+                        <td style="min-width:120px">
+                            ${ g.referralUrl
+                                ? `<a href="${g.referralUrl}" target="_blank" style="text-decoration:none;display:inline-flex;align-items:center;gap:4px">
+                                     ${ sourceIcon(g.source) }
+                                     <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="opacity:.35;flex-shrink:0">
+                                       <path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/>
+                                       <polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/>
+                                     </svg>
+                                   </a>`
+                                : sourceIcon(g.source)
+                            }
+                        </td>
                         <td style="max-width:180px;min-width:120px">
                             <div style="display:flex;align-items:center;gap:6px">
                                 <span style="font-size:11px;color:var(--text2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:140px;display:block" title="${g.headline}">${headlineTrunc}</span>
@@ -2474,11 +2535,6 @@
                     </tr>`;
                 }).join('');
             }
-
-            document.getElementById('camp-no-utm-badge').textContent = semUtm.length + ' lead' + (semUtm.length !== 1 ? 's' : '');
-            document.getElementById('camp-no-utm').textContent = semUtm.length
-                ? `${semUtm.length} lead${semUtm.length !== 1 ? 's' : ''} sem rastreamento de campanha no período selecionado`
-                : 'Todos os leads possuem rastreamento UTM';
 
             document.getElementById('camp-sub').textContent =
                 `${totalComUtm} lead${totalComUtm !== 1 ? 's' : ''} rastreados · ${rows.length} campanha${rows.length !== 1 ? 's' : ''}`;
@@ -2533,24 +2589,50 @@
             modal.classList.add('open');
         }
 
-        function buildCampPeriodOptions() {
-            const sel = document.getElementById('camp-period');
-            if (!sel) return;
+        function buildCampPeriodTabs() {
+            const container = document.getElementById('camp-period-btns');
+            if (!container) return;
+
             const now = new Date();
-            sel.innerHTML = '';
+            const meses = [];
+
             for (let i = 0; i < 6; i++) {
                 const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
-                const label = d.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' });
                 const val = i === 0 ? 'current' : d.toISOString().slice(0, 7);
-                const opt = document.createElement('option');
-                opt.value = val;
-                opt.textContent = i === 0 ? `${label} (atual)` : label;
-                sel.appendChild(opt);
+                const label = i === 0
+                    ? d.toLocaleDateString('pt-BR', { month: 'short', year: '2-digit' }).replace('.','') + ' ✦'
+                    : d.toLocaleDateString('pt-BR', { month: 'short', year: '2-digit' }).replace('.','');
+                meses.push({ val, label });
             }
-            const all = document.createElement('option');
-            all.value = 'all';
-            all.textContent = 'Todo o histórico';
-            sel.appendChild(all);
+
+            container.innerHTML = '';
+
+            const btnAll = document.createElement('button');
+            btnAll.className = 'camp-period-btn' + (CAMP_PERIOD === 'all' ? ' active' : '');
+            btnAll.dataset.val = 'all';
+            btnAll.textContent = 'Todo o histórico';
+            btnAll.onclick = () => setCampPeriod('all', btnAll);
+            container.appendChild(btnAll);
+
+            const sep = document.createElement('div');
+            sep.style.cssText = 'width:1px;height:16px;background:var(--border2);margin:0 2px;align-self:center';
+            container.appendChild(sep);
+
+            meses.forEach(({ val, label }) => {
+                const btn = document.createElement('button');
+                btn.className = 'camp-period-btn' + (CAMP_PERIOD === val ? ' active' : '');
+                btn.dataset.val = val;
+                btn.textContent = label;
+                btn.onclick = () => setCampPeriod(val, btn);
+                container.appendChild(btn);
+            });
+        }
+
+        function setCampPeriod(val, btn) {
+            CAMP_PERIOD = val;
+            document.querySelectorAll('.camp-period-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            renderCampanhas();
         }
 
         async function enrichWithSessionId() {
@@ -2611,7 +2693,7 @@
 
         /* ── INIT ── */
         buildPeriodOptions();
-        buildCampPeriodOptions();
+        buildCampPeriodTabs();
         COMPANY = getUrlCompany();
         MAX_TENT = getUrlMax();
         if (COMPANY) {
