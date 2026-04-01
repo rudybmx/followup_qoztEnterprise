@@ -1007,8 +1007,8 @@
         /* ─── RESPONSIVE ─── */
         /* ─── KANBAN ─── */
         .kanban-col {
-            min-width: 220px;
-            max-width: 220px;
+            min-width: 260px;
+            max-width: 260px;
             background: var(--bg3);
             border-radius: 12px;
             border: 1px solid var(--border);
@@ -1042,16 +1042,25 @@
             flex-direction: column;
             gap: 8px;
             min-height: 80px;
-            max-height: 70vh;
+            max-height: 75vh;
             overflow-y: auto;
         }
         .kanban-card {
             background: var(--bg2);
             border: 1px solid var(--border);
             border-radius: 10px;
-            padding: 12px;
-            cursor: default;
+            padding: 16px;
+            cursor: pointer;
             transition: box-shadow .14s, border-color .14s;
+        }
+        .kanban-card[onclick] {
+            border-left: 3px solid var(--green-bd);
+        }
+        .kanban-card[onclick]:hover {
+            border-left-color: var(--green2);
+        }
+        .kanban-card:active {
+            transform: scale(0.99);
         }
         .kanban-card:hover {
             box-shadow: var(--shadow2);
@@ -1070,12 +1079,12 @@
             margin-bottom: 8px;
         }
         .kanban-card-resumo {
-            font-size: 11px;
+            font-size: 12px;
             color: var(--text2);
             line-height: 1.4;
-            margin-bottom: 8px;
+            margin-bottom: 10px;
             display: -webkit-box;
-            -webkit-line-clamp: 2;
+            -webkit-line-clamp: 3;
             -webkit-box-orient: vertical;
             overflow: hidden;
         }
@@ -1087,14 +1096,36 @@
         .temp-tag {
             font-size: 9px;
             font-weight: 700;
-            padding: 2px 7px;
+            padding: 3px 9px;
             border-radius: 99px;
             text-transform: uppercase;
             letter-spacing: 0.05em;
+            color: #fff;
+            border: none;
         }
-        .temp-quente { background: rgba(185,28,28,0.1);  color: var(--red);   border: 1px solid rgba(185,28,28,0.2); }
-        .temp-morno  { background: rgba(180,83,9,0.1);   color: var(--amber); border: 1px solid rgba(180,83,9,0.2);  }
-        .temp-frio   { background: rgba(29,78,216,0.08); color: var(--blue);  border: 1px solid rgba(29,78,216,0.15);}
+        .temp-quente {
+            background: linear-gradient(135deg, #dc2626, #f97316);
+        }
+        .temp-morno {
+            background: linear-gradient(135deg, #d97706, #fbbf24);
+        }
+        .temp-frio {
+            background: linear-gradient(135deg, #1d4ed8, #38bdf8);
+        }
+        .utm-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 9px;
+            font-weight: 600;
+            padding: 2px 7px;
+            border-radius: 99px;
+            margin-bottom: 8px;
+        }
+        .utm-facebook  { background: rgba(24,119,242,0.1);  color: #1877F2; border: 1px solid rgba(24,119,242,0.2); }
+        .utm-google    { background: rgba(66,133,244,0.1);  color: #4285F4; border: 1px solid rgba(66,133,244,0.2); }
+        .utm-instagram { background: rgba(228,64,95,0.1);   color: #E4405F; border: 1px solid rgba(228,64,95,0.2);  }
+        .utm-other     { background: var(--bg4); color: var(--text3); border: 1px solid var(--border); }
         .kanban-card-time {
             font-size: 9px;
             color: var(--text3);
@@ -1464,6 +1495,8 @@
                     <div class="page-sub" id="camp-sub">rastreamento de origem dos leads</div>
                 </div>
                 <div style="display:flex;gap:8px;align-items:center">
+                    <select id="camp-period" class="fsel" onchange="renderCampanhas()" style="font-size:12px;padding:7px 13px;border-radius:8px;box-shadow:var(--shadow)">
+                    </select>
                     <select id="camp-source" class="fsel" onchange="renderCampanhas()">
                         <option value="">Todas as fontes</option>
                     </select>
@@ -1490,6 +1523,7 @@
                                 <th>Perdidos</th>
                                 <th>Conv. %</th>
                                 <th>Temp. média</th>
+                                <th>Ações</th>
                             </tr>
                         </thead>
                         <tbody id="camp-tbody"></tbody>
@@ -1511,6 +1545,22 @@
             <div class="empty" style="padding:60px">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="width:36px;height:36px;margin:0 auto 12px;display:block;opacity:.3"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
                 Em breve
+            </div>
+        </div>
+
+        <div class="overlay" id="ad-content-modal" onclick="if(event.target===this)this.classList.remove('open')">
+            <div class="modal" style="max-width:480px">
+                <div class="modal-title" style="margin-bottom:12px">Descrição do Anúncio</div>
+                <div id="ad-content-text" style="font-size:13px;color:var(--text2);line-height:1.7;white-space:pre-wrap;max-height:300px;overflow-y:auto;background:var(--bg3);padding:14px;border-radius:8px;font-family:var(--font)"></div>
+                <button class="mbtn mbtn-ghost" style="margin-top:14px" onclick="document.getElementById('ad-content-modal').classList.remove('open')">Fechar</button>
+            </div>
+        </div>
+
+        <div class="overlay" id="camp-leads-modal" onclick="if(event.target===this)this.classList.remove('open')">
+            <div class="modal" style="max-width:400px">
+                <div class="modal-title" style="margin-bottom:12px">Conversas desta campanha</div>
+                <div id="camp-leads-list" style="display:flex;flex-direction:column;gap:6px;max-height:320px;overflow-y:auto"></div>
+                <button class="mbtn mbtn-ghost" style="margin-top:14px" onclick="document.getElementById('camp-leads-modal').classList.remove('open')">Fechar</button>
             </div>
         </div>
 
@@ -1993,21 +2043,43 @@
                         const tempClass = r.temperatura ? `temp-${r.temperatura}` : 'temp-frio';
                         const tempLabel = r.temperatura || 'frio';
                         const resumo = r.ultimo_resumo || 'Sem resumo disponível';
-                        const chatIcon = r.session_id
-                            ? `<a href="https://qozt.wts.chat/chat2/sessions/${r.session_id}" target="_blank" class="kanban-chat-btn" title="Ver conversa">
-                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/>
-                                </svg>
-                            </a>`
+                        let utmBadge = '';
+                        if (r.utm_data) {
+                            let utmArr;
+                            try { utmArr = typeof r.utm_data === 'string' ? JSON.parse(r.utm_data) : r.utm_data; } catch(e) {}
+                            if (utmArr && utmArr[0]) {
+                                const src = (utmArr[0].source || '').toUpperCase();
+                                if (src.includes('FACEBOOK') || src.includes('META')) {
+                                    utmBadge = `<span class="utm-badge utm-facebook" title="${src}">
+                                        <img src="https://cdn.simpleicons.org/facebook/1877F2" width="11" height="11" style="vertical-align:middle"> Meta Ads
+                                    </span>`;
+                                } else if (src.includes('GOOGLE')) {
+                                    utmBadge = `<span class="utm-badge utm-google" title="${src}">
+                                        <img src="https://cdn.simpleicons.org/google/4285F4" width="11" height="11" style="vertical-align:middle"> Google
+                                    </span>`;
+                                } else if (src.includes('INSTAGRAM')) {
+                                    utmBadge = `<span class="utm-badge utm-instagram" title="${src}">
+                                        <img src="https://cdn.simpleicons.org/instagram/E4405F" width="11" height="11" style="vertical-align:middle"> Instagram
+                                    </span>`;
+                                } else if (src) {
+                                    utmBadge = `<span class="utm-badge utm-other" title="${src}">🌐 ${src}</span>`;
+                                }
+                            }
+                        }
+                        const sessionUrl = r.sessao_id
+                            ? `https://qozt.wts.chat/chat2/sessions/${r.sessao_id}`
+                            : null;
+                        const cardOnClick = sessionUrl
+                            ? `onclick="window.open('${sessionUrl}','_blank')"`
                             : '';
-                        return `<div class="kanban-card">
+                        return `<div class="kanban-card" ${cardOnClick}>
                             <div class="kanban-card-phone">${phone(r.telefone)}</div>
                             <div class="kanban-card-agent">${r.agente_id || '—'}</div>
+                            ${utmBadge}
                             <div class="kanban-card-resumo">${resumo}</div>
                             <div class="kanban-card-footer">
                                 <span class="temp-tag ${tempClass}">${tempLabel}</span>
                                 <span class="kanban-card-time">${rel(r.ultimo_contato)}</span>
-                                ${chatIcon}
                             </div>
                         </div>`;
                     }).join('')
@@ -2031,13 +2103,37 @@
 
             const sourceFilter = document.getElementById('camp-source')?.value || '';
 
-            const comUtm    = DATA.filter(r => r.utm_data && Array.isArray(r.utm_data) && r.utm_data[0]);
-            const semUtm    = DATA.filter(r => !r.utm_data || !Array.isArray(r.utm_data) || !r.utm_data[0]);
+            const campPeriodVal = document.getElementById('camp-period')?.value || 'current';
+            const now2 = new Date();
+            let cpStart, cpEnd;
+            if (campPeriodVal === 'current') {
+                cpStart = new Date(now2.getFullYear(), now2.getMonth(), 1);
+                cpEnd   = new Date(now2.getFullYear(), now2.getMonth() + 1, 1);
+            } else if (campPeriodVal === 'all') {
+                cpStart = new Date('2020-01-01');
+                cpEnd   = new Date(now2.getFullYear() + 1, 0, 1);
+            } else {
+                const [cy, cm] = campPeriodVal.split('-').map(Number);
+                cpStart = new Date(cy, cm - 1, 1);
+                cpEnd   = new Date(cy, cm, 1);
+            }
+            const dataFiltrada = DATA.filter(r => {
+                const d = new Date(r.criado_em || r.atualizado_em);
+                return d >= cpStart && d < cpEnd;
+            });
+
+            const comUtm    = dataFiltrada.filter(r => r.utm_data && Array.isArray(r.utm_data) && r.utm_data[0]);
+            const semUtm    = dataFiltrada.filter(r => !r.utm_data || !Array.isArray(r.utm_data) || !r.utm_data[0]);
 
             const sourceSel = document.getElementById('camp-source');
             const prevSource = sourceSel?.value;
             if (sourceSel) {
-                const fontes = [...new Set(comUtm.map(r => r.utm_data[0].source).filter(Boolean))];
+                const fontes = [...new Set(DATA.map(r => {
+                    try {
+                        const utm = typeof r.utm_data === 'string' ? JSON.parse(r.utm_data) : r.utm_data;
+                        return utm && utm[0] ? utm[0].source : null;
+                    } catch(e) { return null; }
+                }).filter(Boolean))];
                 sourceSel.innerHTML = '<option value="">Todas as fontes</option>';
                 fontes.forEach(f => {
                     sourceSel.innerHTML += `<option value="${f}"${prevSource===f?' selected':''}>${f}</option>`;
@@ -2071,6 +2167,7 @@
                 if (!grupos[key]) grupos[key] = {
                     source: utm.source || '?',
                     headline: utm.headline || utm.campaign || 'Sem título',
+                    content: utm.content || '',
                     leads: [], total: 0, ativos: 0, ganhos: 0, percas: 0, perdidos: 0,
                     temps: []
                 };
@@ -2098,15 +2195,33 @@
 
             const sourceIcon = s => {
                 if (!s) return '—';
-                if (s.includes('FACEBOOK') || s.includes('META')) return '📘 ' + s;
-                if (s.includes('GOOGLE'))  return '🔍 ' + s;
-                if (s.includes('INSTAGRAM')) return '📸 ' + s;
-                return '🌐 ' + s;
+                const su = s.toUpperCase();
+                if (su.includes('FACEBOOK') || su.includes('META')) {
+                    return `<span style="display:inline-flex;align-items:center;gap:5px">
+                        <img src="https://cdn.simpleicons.org/facebook/1877F2" width="14" height="14"> <span style="color:#1877F2;font-weight:600;font-size:11px">${s}</span>
+                    </span>`;
+                }
+                if (su.includes('GOOGLE')) {
+                    return `<span style="display:inline-flex;align-items:center;gap:5px">
+                        <img src="https://cdn.simpleicons.org/google/4285F4" width="14" height="14"> <span style="color:#4285F4;font-weight:600;font-size:11px">${s}</span>
+                    </span>`;
+                }
+                if (su.includes('INSTAGRAM')) {
+                    return `<span style="display:inline-flex;align-items:center;gap:5px">
+                        <img src="https://cdn.simpleicons.org/instagram/E4405F" width="14" height="14"> <span style="color:#E4405F;font-weight:600;font-size:11px">${s}</span>
+                    </span>`;
+                }
+                if (su.includes('TIKTOK')) {
+                    return `<span style="display:inline-flex;align-items:center;gap:5px">
+                        <img src="https://cdn.simpleicons.org/tiktok/000000" width="14" height="14"> <span style="font-weight:600;font-size:11px">${s}</span>
+                    </span>`;
+                }
+                return `<span style="display:inline-flex;align-items:center;gap:5px">🌐 <span style="font-weight:600;font-size:11px">${s}</span></span>`;
             };
 
             const tbody = document.getElementById('camp-tbody');
             if (!rows.length) {
-                tbody.innerHTML = `<tr><td colspan="9"><div class="empty">Nenhum lead com UTM no período</div></td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="10"><div class="empty">Nenhum lead com UTM no período</div></td></tr>`;
             } else {
                 tbody.innerHTML = rows.map(g => {
                     const conv = g.total ? Math.round(g.ganhos / g.total * 100) : 0;
@@ -2114,7 +2229,17 @@
                     const headlineTrunc = g.headline.length > 40 ? g.headline.slice(0, 40) + '…' : g.headline;
                     return `<tr>
                         <td><span style="font-size:11px;font-weight:600">${sourceIcon(g.source)}</span></td>
-                        <td style="max-width:200px" title="${g.headline}"><span style="font-size:11px">${headlineTrunc}</span></td>
+                        <td style="max-width:200px">
+                            <span style="font-size:11px">${headlineTrunc}</span>
+                            ${g.content ? `
+                                <button onclick="event.stopPropagation();showAdContent(${JSON.stringify(g.content).replace(/'/g,"\\'")})"
+                                    style="background:none;border:none;cursor:pointer;padding:0 0 0 5px;vertical-align:middle;opacity:0.5" title="Ver descrição do anúncio">
+                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+                                    </svg>
+                                </button>
+                            ` : ''}
+                        </td>
                         <td class="mono" style="color:var(--text);font-weight:600">${g.total}</td>
                         <td class="mono">${g.ativos}</td>
                         <td class="mono" style="color:var(--green)">${g.ganhos}</td>
@@ -2122,6 +2247,14 @@
                         <td class="mono" style="color:var(--text3)">${g.perdidos}</td>
                         <td><span class="${convCls}" style="font-size:12px;font-weight:700">${conv}%</span></td>
                         <td>${tempPred(g.temps)}</td>
+                        <td>
+                            <button onclick="showCampLeads(${JSON.stringify(g.leads.map(l=>({t:l.telefone,s:l.sessao_id})))})"
+                                style="background:none;border:none;cursor:pointer;padding:4px;opacity:0.5;vertical-align:middle" title="Ver conversas desta campanha">
+                                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/>
+                                </svg>
+                            </button>
+                        </td>
                     </tr>`;
                 }).join('');
             }
@@ -2133,6 +2266,48 @@
 
             document.getElementById('camp-sub').textContent =
                 `${totalComUtm} lead${totalComUtm !== 1 ? 's' : ''} rastreados · ${rows.length} campanha${rows.length !== 1 ? 's' : ''}`;
+        }
+
+        function showAdContent(content) {
+            const modal = document.getElementById('ad-content-modal');
+            document.getElementById('ad-content-text').textContent = content;
+            modal.classList.add('open');
+        }
+
+        function showCampLeads(leads) {
+            const modal = document.getElementById('camp-leads-modal');
+            const list  = document.getElementById('camp-leads-list');
+            list.innerHTML = leads.map(l => l.s
+                ? `<a href="https://qozt.wts.chat/chat2/sessions/${l.s}" target="_blank"
+                        style="display:flex;align-items:center;gap:8px;padding:8px 10px;background:var(--bg3);border-radius:8px;text-decoration:none;color:var(--text);font-size:12px;font-family:var(--mono)">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2">
+                            <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/>
+                        </svg>
+                        ${phone(l.t)}
+                    </a>`
+                : `<div style="padding:8px 10px;font-size:12px;color:var(--text3);font-family:var(--mono)">${phone(l.t)} — sem sessão</div>`
+            ).join('');
+            modal.classList.add('open');
+        }
+
+        function buildCampPeriodOptions() {
+            const sel = document.getElementById('camp-period');
+            if (!sel) return;
+            const now = new Date();
+            sel.innerHTML = '';
+            for (let i = 0; i < 6; i++) {
+                const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+                const label = d.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' });
+                const val = i === 0 ? 'current' : d.toISOString().slice(0, 7);
+                const opt = document.createElement('option');
+                opt.value = val;
+                opt.textContent = i === 0 ? `${label} (atual)` : label;
+                sel.appendChild(opt);
+            }
+            const all = document.createElement('option');
+            all.value = 'all';
+            all.textContent = 'Todo o histórico';
+            sel.appendChild(all);
         }
 
         async function enrichWithSessionId() {
@@ -2193,6 +2368,7 @@
 
         /* ── INIT ── */
         buildPeriodOptions();
+        buildCampPeriodOptions();
         COMPANY = getUrlCompany();
         MAX_TENT = getUrlMax();
         if (COMPANY) {
