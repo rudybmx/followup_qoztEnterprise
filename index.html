@@ -653,7 +653,7 @@
         .tbl-wrap {
             overflow-x: auto;
             overflow-y: auto;
-            max-height: 400px;
+            max-height: 560px;
         }
 
         table {
@@ -666,12 +666,12 @@
         }
 
         th {
-            font-size: 10px;
+            font-size: 9px;
             font-weight: 700;
             color: var(--text3);
             text-transform: uppercase;
             letter-spacing: 0.09em;
-            padding: 7px 11px;
+            padding: 7px 8px;
             text-align: left;
             white-space: nowrap;
             background: var(--bg3);
@@ -686,11 +686,21 @@
         }
 
         td {
-            padding: 10px 11px;
-            font-size: 12px;
+            padding: 9px 8px;
+            font-size: 11px;
             color: var(--text2);
             border-bottom: 1px solid var(--border);
             vertical-align: middle;
+        }
+
+        th:first-child, th:nth-child(2) {
+            width: 28px;
+            padding: 7px 4px;
+        }
+        td:first-child, td:nth-child(2) {
+            width: 28px;
+            padding: 9px 4px;
+            text-align: center;
         }
 
         tbody tr:last-child td {
@@ -1114,16 +1124,16 @@
         }
 
         @media (max-width: 1200px) {
-        @media (max-width: 1200px) {
             .metrics-grid {
                 grid-template-columns: repeat(3, 1fr);
             }
         }
 
         @media (max-width: 900px) {
-
-            .row2,
-            .row2-rev {
+            .row2 {
+                grid-template-columns: 1fr;
+            }
+            #proximos {
                 grid-template-columns: 1fr;
             }
         }
@@ -1363,17 +1373,20 @@
         </div>
 
         <!-- ROW 2: proximos + table -->
-        <div class="row2-rev">
+        <div style="margin-bottom:14px">
             <div class="card">
                 <div class="card-header">
                     <div class="card-title">Próximos envios</div>
                     <div class="card-badge">próximas 3h</div>
                 </div>
-                <div class="proximos" id="proximos">
+                <div id="proximos" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:6px">
                     <div class="empty">carregando...</div>
                 </div>
             </div>
-            <div class="card" style="min-width:0">
+        </div>
+
+        <div>
+            <div class="card">
                 <div class="card-header">
                     <div class="card-title">Todos os leads</div>
                     <div class="card-badge" id="tbl-count"></div>
