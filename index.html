@@ -311,7 +311,7 @@
         /* ─── METRICS ─── */
         .metrics-grid {
             display: grid;
-            grid-template-columns: repeat(9, minmax(0, 1fr));
+            grid-template-columns: repeat(8, minmax(0, 1fr));
             gap: 10px;
             margin-bottom: 22px;
         }
@@ -1348,15 +1348,6 @@
                 </div>
             </div>
             <div class="metric">
-                <div class="metric-label">Esgotados</div>
-                <div class="metric-value red" id="m-esg">—</div>
-                <div class="metric-sub">8 tent. sem resposta</div>
-                <div class="metric-line" style="background:var(--red-bg)">
-                    <div id="ml-esg"
-                        style="height:3px;border-radius:99px;background:var(--red);width:0%;transition:width .5s"></div>
-                </div>
-            </div>
-            <div class="metric">
                 <div class="metric-label">Encerrados</div>
                 <div class="metric-value blue" id="m-enc">—</div>
                 <div class="metric-sub">ciclo finalizado</div>
@@ -1398,6 +1389,14 @@
                 <div class="metric-sub">esgotaram tentativas</div>
                 <div class="metric-line" style="background:rgba(0,0,0,0.04)">
                     <div id="ml-perdido" style="height:3px;border-radius:99px;background:#9ca3af;width:0%;transition:width .5s"></div>
+                </div>
+            </div>
+            <div class="metric">
+                <div class="metric-label">De Campanhas</div>
+                <div class="metric-value blue" id="m-camp">—</div>
+                <div class="metric-sub" id="m-camp-sub">do total</div>
+                <div class="metric-line" style="background:var(--blue-bg)">
+                    <div id="ml-camp" style="height:3px;border-radius:99px;background:var(--blue);width:0%;transition:width .5s"></div>
                 </div>
             </div>
         </div>
@@ -1925,7 +1924,6 @@
             const taxa = tot ? Math.round(((en + es) / tot) * 100) : 0;
             document.getElementById('m-ativos').textContent = at;
             document.getElementById('m-venc').textContent = ve;
-            document.getElementById('m-esg').textContent = es;
             document.getElementById('m-enc').textContent = en;
             document.getElementById('m-tot').textContent = tot;
             document.getElementById('m-taxa').textContent = taxa + '%';
@@ -1938,11 +1936,24 @@
             if (tot) {
                 document.getElementById('ml-ativos').style.width = Math.round(at / tot * 100) + '%';
                 document.getElementById('ml-venc').style.width = Math.round(ve / tot * 100) + '%';
-                document.getElementById('ml-esg').style.width = Math.round(es / tot * 100) + '%';
                 document.getElementById('ml-enc').style.width = Math.round(en / tot * 100) + '%';
                 document.getElementById('ml-ganho').style.width   = Math.round(ganho/tot*100)+'%';
                 document.getElementById('ml-perca').style.width   = Math.round(perca/tot*100)+'%';
                 document.getElementById('ml-perdido').style.width = Math.round(perdido/tot*100)+'%';
+            }
+            const comUtm = d.filter(r => {
+                if (!r.utm_data) return false;
+                try {
+                    const arr = typeof r.utm_data === 'string' ? JSON.parse(r.utm_data) : r.utm_data;
+                    return Array.isArray(arr) && arr[0] && arr[0].source;
+                } catch(e) { return false; }
+            }).length;
+            document.getElementById('m-camp').textContent = comUtm;
+            document.getElementById('m-camp-sub').textContent = tot
+                ? `${Math.round(comUtm / tot * 100)}% do total`
+                : 'do total';
+            if (tot) {
+                document.getElementById('ml-camp').style.width = Math.round(comUtm / tot * 100) + '%';
             }
         }
 
