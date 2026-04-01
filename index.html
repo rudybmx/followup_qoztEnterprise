@@ -1624,22 +1624,22 @@
         </div>
 
         <div class="overlay" id="camp-leads-modal" onclick="if(event.target===this)this.classList.remove('open')">
-            <div class="modal" style="max-width:720px;width:95vw">
+            <div class="modal" style="max-width:900px;width:95vw">
                 <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
                     <div class="modal-title">Conversas desta campanha</div>
                     <div id="camp-leads-count" style="font-size:11px;color:var(--text3);font-family:var(--mono)"></div>
                 </div>
-                <div style="display:grid;grid-template-columns:1fr 120px 80px 100px 90px 80px 70px 32px;gap:8px;padding:6px 10px;background:var(--bg3);border-radius:6px;margin-bottom:6px">
-                    <div style="font-size:9px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.07em">Telefone</div>
-                    <div style="font-size:9px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.07em">Últ. Contato</div>
-                    <div style="font-size:9px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.07em;text-align:center">Tent.</div>
-                    <div style="font-size:9px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.07em">Status</div>
-                    <div style="font-size:9px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.07em">Fechamento</div>
-                    <div style="font-size:9px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.07em;text-align:center">Temp.</div>
+                <div style="display:grid;grid-template-columns:140px 90px 55px 90px 100px 75px 28px 28px;gap:8px;padding:6px 8px;background:var(--bg3);border-radius:6px;margin-bottom:6px">
+                    <div style="font-size:8px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.07em">Telefone</div>
+                    <div style="font-size:8px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.07em">Últ. Contato</div>
+                    <div style="font-size:8px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.07em;text-align:center">Tent.</div>
+                    <div style="font-size:8px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.07em">Status</div>
+                    <div style="font-size:8px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.07em">Fechamento</div>
+                    <div style="font-size:8px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.07em;text-align:center">Temp.</div>
                     <div></div>
                     <div></div>
                 </div>
-                <div id="camp-leads-list" style="display:flex;flex-direction:column;gap:4px;max-height:400px;overflow-y:auto"></div>
+                <div id="camp-leads-list" style="display:flex;flex-direction:column;gap:4px;max-height:420px;overflow-y:auto"></div>
                 <button class="mbtn mbtn-ghost" style="margin-top:14px" onclick="document.getElementById('camp-leads-modal').classList.remove('open')">Fechar</button>
             </div>
         </div>
@@ -2646,7 +2646,7 @@
                     frio:   'background:linear-gradient(135deg,#1d4ed8,#38bdf8)'
                 };
                 const tempHtml = l.temperatura
-                    ? `<span style="${tempStyles[l.temperatura] || tempStyles.frio};color:#fff;font-size:9px;font-weight:700;padding:2px 7px;border-radius:99px;text-transform:uppercase">${l.temperatura}</span>`
+                    ? `<span style="${tempStyles[l.temperatura] || tempStyles.frio};color:#fff;font-size:8px;font-weight:700;padding:2px 5px;border-radius:99px;text-transform:uppercase">${l.temperatura}</span>`
                     : '<span style="color:var(--text3);font-size:11px">—</span>';
 
                 const fechHtml = fechamentoPill(l.status_fechamento);
@@ -2669,30 +2669,30 @@
                     : '';
 
                 return `<div ${rowClick}
-                    style="${rowStyle}display:grid;grid-template-columns:1fr 120px 80px 100px 90px 80px 70px 32px;gap:8px;align-items:center;padding:8px 10px;background:var(--bg3);border-radius:8px;border:1px solid var(--border);transition:border-color .14s"
+                    style="${rowStyle}display:grid;grid-template-columns:140px 90px 55px 90px 100px 75px 28px 28px;gap:8px;align-items:center;padding:7px 8px;background:var(--bg3);border-radius:8px;border:1px solid var(--border);transition:border-color .14s"
                     onmouseover="if(this.onclick)this.style.borderColor='var(--green-bd)'"
                     onmouseout="this.style.borderColor='var(--border)'">
 
-                    <div style="font-size:11px;font-family:var(--mono);font-weight:500;color:var(--text);display:flex;align-items:center;gap:4px">
+                    <div style="font-size:11px;font-family:var(--mono);font-weight:500;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:flex;align-items:center;gap:4px">
                         ${tel}
                         ${linkHtml}
                     </div>
 
-                    <div style="font-size:10px;font-family:var(--mono);color:var(--text3)">
+                    <div style="font-size:10px;font-family:var(--mono);color:var(--text3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">
                         ${rel(l.ultimo_contato)}
                     </div>
 
-                    <div style="text-align:center;font-size:11px;font-family:var(--mono);color:var(--text2)">
+                    <div style="text-align:center;font-size:11px;font-family:var(--mono);color:var(--text2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">
                         ${l.tentativa || 0}<span style="color:var(--text3)">/${l.max_tentativas || 8}</span>
                     </div>
 
-                    <div>${statusPill(l)}</div>
+                    <div style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${statusPill(l)}</div>
 
-                    <div>${fechHtml}</div>
+                    <div style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${fechHtml}</div>
 
-                    <div style="text-align:center">${tempHtml}</div>
+                    <div style="text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${tempHtml}</div>
 
-                    <div>${resumoHtml}</div>
+                    <div style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${resumoHtml}</div>
 
                     <div style="text-align:center;font-size:10px;font-family:var(--mono);color:var(--text3)"></div>
                 </div>`;
