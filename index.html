@@ -320,7 +320,7 @@
             background: var(--bg2);
             border: 1px solid var(--border);
             border-radius: 12px;
-            padding: 16px 18px;
+            padding: 12px 14px;
             box-shadow: var(--shadow);
             transition: box-shadow .15s;
         }
@@ -339,7 +339,7 @@
         }
 
         .metric-value {
-            font-size: 28px;
+            font-size: 24px;
             font-weight: 700;
             line-height: 1;
             letter-spacing: -1px;
@@ -434,7 +434,7 @@
             display: flex;
             flex-direction: column;
             gap: 8px;
-            max-height: 340px;
+            max-height: 220px;
             overflow-y: auto;
         }
 
@@ -647,6 +647,54 @@
 
         .fsel:focus {
             border-color: var(--green-bd);
+        }
+
+        /* ─── PROXIMOS FILTER ─── */
+        .prox-filter-group {
+            display: flex;
+            align-items: center;
+            gap: 3px;
+            background: var(--bg3);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 3px;
+            box-shadow: var(--shadow);
+        }
+
+        .prox-fb {
+            display: inline-flex;
+            align-items: center;
+            padding: 4px 11px;
+            border-radius: 6px;
+            border: none;
+            background: transparent;
+            color: var(--text3);
+            font-size: 11px;
+            font-weight: 500;
+            cursor: pointer;
+            font-family: var(--font);
+            transition: all .12s;
+            white-space: nowrap;
+        }
+
+        .prox-fb:hover {
+            background: var(--bg2);
+            color: var(--text2);
+        }
+
+        .prox-fb.active {
+            background: var(--bg2);
+            color: var(--text);
+            font-weight: 600;
+            box-shadow: var(--shadow);
+        }
+
+        .prox-fb.active#pf-today {
+            color: var(--green);
+        }
+
+        .prox-fb.active#pf-overdue {
+            color: var(--red);
         }
 
         /* ─── TABLE ─── */
@@ -1357,7 +1405,7 @@
                     <div class="card-title">Por Tentativa</div>
                     <div class="card-badge" id="chart-badge">—</div>
                 </div>
-                <div id="chart-container" style="position:relative;width:100%;height:140px;margin-top:8px">
+                <div id="chart-container" style="position:relative;width:100%;height:110px;margin-top:8px">
                     <canvas id="chart-canvas" style="width:100%;height:100%"></canvas>
                 </div>
             </div>
@@ -1367,19 +1415,6 @@
                     <div class="card-badge" id="agents-badge"></div>
                 </div>
                 <div class="agents-list" id="agents-list">
-                    <div class="empty">carregando...</div>
-                </div>
-            </div>
-        </div>
-
-        <!-- ROW 2: proximos + table -->
-        <div style="margin-bottom:14px">
-            <div class="card">
-                <div class="card-header">
-                    <div class="card-title">Próximos envios</div>
-                    <div class="card-badge">próximas 3h</div>
-                </div>
-                <div id="proximos" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:6px">
                     <div class="empty">carregando...</div>
                 </div>
             </div>
@@ -1400,6 +1435,23 @@
                     <button class="fb" onclick="setF('ganhos',this)">Ganhos</button>
                     <button class="fb" onclick="setF('percas',this)">Percas</button>
                     <button class="fb" onclick="setF('perdidos',this)">Perdidos</button>
+                    <div style="width:1px;height:20px;background:var(--border2);margin:0 4px"></div>
+                    <div class="prox-filter-group">
+                        <button class="prox-fb active" id="pf-all"   onclick="setProxFilter('all',this)"   title="Sem filtro de envio">Todos</button>
+                        <button class="prox-fb" id="pf-today" onclick="setProxFilter('today',this)" title="Próximo envio hoje">
+                            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle;margin-right:3px">
+                                <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+                            </svg>Hoje
+                        </button>
+                        <button class="prox-fb" id="pf-tomorrow" onclick="setProxFilter('tomorrow',this)" title="Próximo envio amanhã">Amanhã</button>
+                        <button class="prox-fb" id="pf-week" onclick="setProxFilter('week',this)" title="Próximos 7 dias">7 dias</button>
+                        <button class="prox-fb" id="pf-overdue" onclick="setProxFilter('overdue',this)" title="Envios em atraso">
+                            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle;margin-right:3px">
+                                <path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/>
+                                <line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
+                            </svg>Atrasados
+                        </button>
+                    </div>
                     <select class="fsel" id="ag-sel" onchange="renderTable()">
                         <option value="">Todos os agentes</option>
                     </select>
@@ -1622,7 +1674,7 @@
         const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9hdGloZG5kaGNvdXhkcWhhbnR3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjkwODc1NjksImV4cCI6MjA4NDY2MzU2OX0.00PCoHzUISJYrtjMd940dExN8y5iF8alhPTeX43lmXc';
 
         const CONFIG_HOOK = 'https://webhooks.qozt.com.br/webhook/9a790cbb-2924-4480-8fd8-1dfa2ce581d1';
-        let DATA = [], FILTER = 'todos', COMPANY = '', MAX_TENT = 8;
+        let DATA = [], FILTER = 'todos', PROX_FILTER = 'all', COMPANY = '', MAX_TENT = 8;
 
         /* ── SENHA ── */
         const SENHA_CORRETA = 'Qozt@102030*';
@@ -2014,28 +2066,6 @@
             }).join('');
         }
 
-        /* ── PROXIMOS ── */
-        function proximos(d) {
-            const now = Date.now(), h3 = now + 3 * 3600 * 1000;
-            const list = d.filter(r => r.ativo && r.proximo_envio)
-                .sort((a, b) => new Date(a.proximo_envio) - new Date(b.proximo_envio))
-                .slice(0, 8);
-            const el = document.getElementById('proximos');
-            if (!list.length) { el.innerHTML = '<div class="empty" style="padding:16px">Nenhum envio programado</div>'; return; }
-            el.innerHTML = list.map(r => {
-                const ms = new Date(r.proximo_envio).getTime();
-                const cls = ms < now ? 'overdue' : ms < h3 ? 'soon' : '';
-                const sessionUrl = r.sessao_id ? `https://qozt.wts.chat/chat2/sessions/${r.sessao_id}` : null;
-                const clickAttr  = sessionUrl ? `onclick="window.open('${sessionUrl}','_blank')" style="cursor:pointer"` : '';
-                return `<div class="prox-item ${cls}" ${clickAttr}>
-      <div class="prox-time">${rel(r.proximo_envio)}</div>
-      <div class="prox-phone">${phone(r.telefone)}</div>
-      <div class="prox-agent">${r.agente_id || '—'}</div>
-      <div class="prox-tent">${r.tentativa || 0}/8</div>
-    </div>`;
-            }).join('');
-        }
-
         /* ── TABLE ── */
         function setF(f, btn) {
             FILTER = f;
@@ -2044,6 +2074,14 @@
             const u = new URL(location.href);
             f === 'todos' ? u.searchParams.delete('filter') : u.searchParams.set('filter', f);
             history.replaceState({}, '', u);
+            const scrollY = window.scrollY;
+            renderTable();
+            window.scrollTo(0, scrollY);
+        }
+        function setProxFilter(f, btn) {
+            PROX_FILTER = f;
+            document.querySelectorAll('.prox-fb').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
             const scrollY = window.scrollY;
             renderTable();
             window.scrollTo(0, scrollY);
@@ -2067,6 +2105,25 @@
             if (FILTER === 'ganhos') rows = rows.filter(r => r.status_fechamento === 'GANHO');
             else if (FILTER === 'percas') rows = rows.filter(r => r.status_fechamento === 'PERCA');
             else if (FILTER === 'perdidos') rows = rows.filter(r => r.status_fechamento === 'PERDIDO');
+
+            if (PROX_FILTER !== 'all') {
+                const now = new Date();
+                const todayStr = now.toISOString().split('T')[0];
+                const tomorrow = new Date(now); tomorrow.setDate(tomorrow.getDate() + 1);
+                const tomorrowStr = tomorrow.toISOString().split('T')[0];
+                const weekEnd = new Date(now); weekEnd.setDate(weekEnd.getDate() + 7);
+                const weekEndStr = weekEnd.toISOString().split('T')[0];
+
+                rows = rows.filter(r => {
+                    if (!r.proximo_envio) return false;
+                    const d = r.proximo_envio.split('T')[0];
+                    if (PROX_FILTER === 'overdue') return d < todayStr;
+                    if (PROX_FILTER === 'today') return d === todayStr;
+                    if (PROX_FILTER === 'tomorrow') return d === tomorrowStr;
+                    if (PROX_FILTER === 'week') return d > todayStr && d <= weekEndStr;
+                    return true;
+                });
+            }
 
             const n = rows.length;
             document.getElementById('tbl-count').textContent = n + ' registro' + (n !== 1 ? 's' : '') + (n > 100 ? ' (top 100)' : '');
