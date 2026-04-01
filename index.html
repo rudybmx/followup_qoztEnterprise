@@ -1624,9 +1624,22 @@
         </div>
 
         <div class="overlay" id="camp-leads-modal" onclick="if(event.target===this)this.classList.remove('open')">
-            <div class="modal" style="max-width:400px">
-                <div class="modal-title" style="margin-bottom:12px">Conversas desta campanha</div>
-                <div id="camp-leads-list" style="display:flex;flex-direction:column;gap:6px;max-height:320px;overflow-y:auto"></div>
+            <div class="modal" style="max-width:720px;width:95vw">
+                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+                    <div class="modal-title">Conversas desta campanha</div>
+                    <div id="camp-leads-count" style="font-size:11px;color:var(--text3);font-family:var(--mono)"></div>
+                </div>
+                <div style="display:grid;grid-template-columns:1fr 120px 80px 100px 90px 80px 70px 32px;gap:8px;padding:6px 10px;background:var(--bg3);border-radius:6px;margin-bottom:6px">
+                    <div style="font-size:9px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.07em">Telefone</div>
+                    <div style="font-size:9px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.07em">Últ. Contato</div>
+                    <div style="font-size:9px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.07em;text-align:center">Tent.</div>
+                    <div style="font-size:9px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.07em">Status</div>
+                    <div style="font-size:9px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.07em">Fechamento</div>
+                    <div style="font-size:9px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.07em;text-align:center">Temp.</div>
+                    <div></div>
+                    <div></div>
+                </div>
+                <div id="camp-leads-list" style="display:flex;flex-direction:column;gap:4px;max-height:400px;overflow-y:auto"></div>
                 <button class="mbtn mbtn-ghost" style="margin-top:14px" onclick="document.getElementById('camp-leads-modal').classList.remove('open')">Fechar</button>
             </div>
         </div>
@@ -2521,10 +2534,7 @@
                 tbody.innerHTML = `<tr><td colspan="10"><div class="empty">Nenhum lead com UTM no período</div></td></tr>`;
             } else {
                 rows.forEach((g, idx) => {
-                    CAMP_LEADS_MAP[idx] = g.leads.map(l => ({
-                        t: l.telefone,
-                        s: l.sessao_id || l.session_id || null
-                    }));
+                    CAMP_LEADS_MAP[idx] = g.leads;
                 });
                 tbody.innerHTML = rows.map((g, idx) => {
                     const conv = g.total ? Math.round(g.ganhos / g.total * 100) : 0;
@@ -2596,6 +2606,7 @@
         function showCampLeads(leads) {
             const modal = document.getElementById('camp-leads-modal');
             const list  = document.getElementById('camp-leads-list');
+            const countEl = document.getElementById('camp-leads-count');
 
             let arr = leads;
             if (typeof leads === 'string') {
@@ -2604,33 +2615,87 @@
 
             if (!arr || !arr.length) {
                 list.innerHTML = '<div style="padding:16px;font-size:12px;color:var(--text3);text-align:center">Nenhum lead encontrado</div>';
+                if (countEl) countEl.textContent = '0 leads';
                 modal.classList.add('open');
                 return;
             }
 
+            if (countEl) countEl.textContent = arr.length + ' lead' + (arr.length !== 1 ? 's' : '');
+
+            const statusPill = (l) => {
+                const r = { ativo: l.ativo, tentativa: l.tentativa, max_tentativas: l.max_tentativas, proximo_envio: l.proximo_envio };
+                const st = status(r);
+                const pills = {
+                    ativo:     '<span class="pill pill-ativo"><span class="pill-dot"></span>ativo</span>',
+                    vencido:   '<span class="pill pill-vencido"><span class="pill-dot"></span>vencido</span>',
+                    encerrado: '<span class="pill pill-enc"><span class="pill-dot"></span>encerrado</span>',
+                    esgotado:  '<span class="pill pill-esg"><span class="pill-dot"></span>esgotado</span>',
+                };
+                return pills[st] || '—';
+            };
+
             list.innerHTML = arr.map(l => {
-                const sessionId = l.s || l.sessao_id || l.session_id;
+                const sessionId = l.s || l.sessao_id || l.session_id || l.session_id;
                 const tel = phone(l.t || l.telefone || '');
-                if (sessionId) {
-                    return `<a href="https://qozt.wts.chat/chat2/sessions/${sessionId}" target="_blank"
-                        style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--bg3);border-radius:8px;text-decoration:none;color:var(--text);font-size:12px;font-family:var(--mono);border:1px solid var(--border);transition:border-color .14s"
-                        onmouseover="this.style.borderColor='var(--green-bd)'" onmouseout="this.style.borderColor='var(--border)'">
-                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2">
+                const rowStyle = sessionId ? 'cursor:pointer;' : 'opacity:0.7;';
+                const rowClick = sessionId ? `onclick="window.open('https://qozt.wts.chat/chat2/sessions/${sessionId}','_blank')"` : '';
+
+                const tempStyles = {
+                    quente: 'background:linear-gradient(135deg,#dc2626,#f97316)',
+                    morno:  'background:linear-gradient(135deg,#d97706,#fbbf24)',
+                    frio:   'background:linear-gradient(135deg,#1d4ed8,#38bdf8)'
+                };
+                const tempHtml = l.temperatura
+                    ? `<span style="${tempStyles[l.temperatura] || tempStyles.frio};color:#fff;font-size:9px;font-weight:700;padding:2px 7px;border-radius:99px;text-transform:uppercase">${l.temperatura}</span>`
+                    : '<span style="color:var(--text3);font-size:11px">—</span>';
+
+                const fechHtml = fechamentoPill(l.status_fechamento);
+
+                const resumoHtml = l.ultimo_resumo
+                    ? `<button onclick="event.stopPropagation();showResumoModal('${(l.ultimo_resumo || '').replace(/'/g,"\\'").replace(/"/g,'&quot;')}','${(l.agente || '').replace(/'/g,"\\'")}')"
+                        style="background:none;border:none;cursor:pointer;padding:2px;opacity:0.45"
+                        title="Ver resumo">
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/>
                         </svg>
-                        <span style="flex:1">${tel}</span>
-                        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="var(--text3)" stroke-width="2">
-                            <path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/>
-                        </svg>
-                    </a>`;
-                } else {
-                    return `<div style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--bg3);border-radius:8px;font-size:12px;font-family:var(--mono);color:var(--text3);border:1px solid var(--border)">
-                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" opacity=".3">
-                            <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/>
-                        </svg>
-                        ${tel} <span style="margin-left:auto;font-size:10px">sem sessão</span>
-                    </div>`;
-                }
+                    </button>`
+                    : '';
+
+                const linkHtml = sessionId
+                    ? `<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="var(--text3)" stroke-width="2">
+                            <path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/>
+                            <polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/>
+                        </svg>`
+                    : '';
+
+                return `<div ${rowClick}
+                    style="${rowStyle}display:grid;grid-template-columns:1fr 120px 80px 100px 90px 80px 70px 32px;gap:8px;align-items:center;padding:8px 10px;background:var(--bg3);border-radius:8px;border:1px solid var(--border);transition:border-color .14s"
+                    onmouseover="if(this.onclick)this.style.borderColor='var(--green-bd)'"
+                    onmouseout="this.style.borderColor='var(--border)'">
+
+                    <div style="font-size:11px;font-family:var(--mono);font-weight:500;color:var(--text);display:flex;align-items:center;gap:4px">
+                        ${tel}
+                        ${linkHtml}
+                    </div>
+
+                    <div style="font-size:10px;font-family:var(--mono);color:var(--text3)">
+                        ${rel(l.ultimo_contato)}
+                    </div>
+
+                    <div style="text-align:center;font-size:11px;font-family:var(--mono);color:var(--text2)">
+                        ${l.tentativa || 0}<span style="color:var(--text3)">/${l.max_tentativas || 8}</span>
+                    </div>
+
+                    <div>${statusPill(l)}</div>
+
+                    <div>${fechHtml}</div>
+
+                    <div style="text-align:center">${tempHtml}</div>
+
+                    <div>${resumoHtml}</div>
+
+                    <div style="text-align:center;font-size:10px;font-family:var(--mono);color:var(--text3)"></div>
+                </div>`;
             }).join('');
 
             modal.classList.add('open');
