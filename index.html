@@ -774,6 +774,9 @@
         #camp-tbody td { vertical-align: middle; padding: 10px 10px; }
         #camp-tbody tr:nth-child(even) td { background: var(--bg3); }
 
+        th[onclick] { cursor: pointer; user-select: none; transition: background .12s, color .12s; }
+        th[onclick]:hover { background: var(--bg4); color: var(--text2); }
+
         th:first-child, th:nth-child(2) {
             width: 28px;
             padding: 7px 4px;
@@ -1484,21 +1487,7 @@
                 </div>
                 <div class="tbl-wrap">
                     <table>
-                        <thead>
-                            <tr>
-                                <th style="width:32px"></th>
-                                <th style="width:32px"></th>
-                                <th>Telefone</th>
-                                <th>Agente</th>
-                                <th>Recepção</th>
-                                <th>Tent.</th>
-                                <th>Progresso</th>
-                                <th>Últ. contato</th>
-                                <th>Próx. envio</th>
-                                <th>Status</th>
-                                <th>Fechamento</th>
-                                <th>Temp.</th>
-                            </tr>
+                        <thead id="tbl-head">
                         </thead>
                         <tbody id="tbl-body">
                             <tr>
@@ -1718,7 +1707,7 @@
         const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9hdGloZG5kaGNvdXhkcWhhbnR3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjkwODc1NjksImV4cCI6MjA4NDY2MzU2OX0.00PCoHzUISJYrtjMd940dExN8y5iF8alhPTeX43lmXc';
 
         const CONFIG_HOOK = 'https://webhooks.qozt.com.br/webhook/9a790cbb-2924-4480-8fd8-1dfa2ce581d1';
-        let DATA = [], FILTER = 'todos', PROX_FILTER = 'all', COMPANY = '', MAX_TENT = 8, CAMP_LEADS_MAP = {}, CAMP_PERIOD = 'all';
+        let DATA = [], FILTER = 'todos', PROX_FILTER = 'all', COMPANY = '', MAX_TENT = 8, CAMP_LEADS_MAP = {}, CAMP_PERIOD = 'all', SORT_COL = 'criado_em', SORT_DIR = 'desc';
 
         /* ── SENHA ── */
         const SENHA_CORRETA = 'Qozt@102030*';
@@ -2158,7 +2147,46 @@
             if (sf === 'PERDIDO') return '<span class="pill pill-perdido"><span class="pill-dot"></span>perdido</span>';
             return '<span style="color:var(--text3);font-size:11px">—</span>';
         }
+        function sortIcon(col) {
+            const active = SORT_COL === col;
+            const asc  = active && SORT_DIR === 'asc';
+            const desc = active && SORT_DIR === 'desc';
+            return `<span class="sort-icon" style="display:inline-flex;flex-direction:column;align-items:center;margin-left:4px;vertical-align:middle;gap:1px">
+                <svg width="8" height="6" viewBox="0 0 8 6" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M4 0L7.46 5.5H0.54L4 0Z" fill="${asc ? 'var(--text)' : 'var(--border2)'}"/>
+                </svg>
+                <svg width="8" height="6" viewBox="0 0 8 6" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M4 6L0.54 0.5H7.46L4 6Z" fill="${desc ? 'var(--text)' : 'var(--border2)'}"/>
+                </svg>
+            </span>`;
+        }
+        function sortBy(col) {
+            if (SORT_COL === col) {
+                SORT_DIR = SORT_DIR === 'asc' ? 'desc' : 'asc';
+            } else {
+                SORT_COL = col;
+                SORT_DIR = 'asc';
+            }
+            const scrollY = window.scrollY;
+            renderTable();
+            window.scrollTo(0, scrollY);
+        }
         function renderTable() {
+            document.getElementById('tbl-head').innerHTML = `<tr>
+                <th style="width:28px;padding:7px 4px"></th>
+                <th style="width:28px;padding:7px 4px"></th>
+                <th onclick="sortBy('telefone')" style="cursor:pointer;user-select:none">Telefone ${sortIcon('telefone')}</th>
+                <th onclick="sortBy('agente_id')" style="cursor:pointer;user-select:none">Agente ${sortIcon('agente_id')}</th>
+                <th onclick="sortBy('criado_em')" style="cursor:pointer;user-select:none">Recepção ${sortIcon('criado_em')}</th>
+                <th onclick="sortBy('tentativa')" style="cursor:pointer;user-select:none">Tent. ${sortIcon('tentativa')}</th>
+                <th>Progresso</th>
+                <th onclick="sortBy('ultimo_contato')" style="cursor:pointer;user-select:none">Últ. Contato ${sortIcon('ultimo_contato')}</th>
+                <th onclick="sortBy('proximo_envio')" style="cursor:pointer;user-select:none">Próx. Envio ${sortIcon('proximo_envio')}</th>
+                <th>Status</th>
+                <th onclick="sortBy('status_fechamento')" style="cursor:pointer;user-select:none">Fechamento ${sortIcon('status_fechamento')}</th>
+                <th onclick="sortBy('temperatura')" style="cursor:pointer;user-select:none">Temp. ${sortIcon('temperatura')}</th>
+            </tr>`;
+
             const ag = document.getElementById('ag-sel').value;
             const q = document.getElementById('srch').value.toLowerCase();
             let rows = DATA;
@@ -2190,6 +2218,25 @@
                     return true;
                 });
             }
+
+            rows = [...rows].sort((a, b) => {
+                let va = a[SORT_COL];
+                let vb = b[SORT_COL];
+                if (va == null && vb == null) return 0;
+                if (va == null) return 1;
+                if (vb == null) return -1;
+                const dateCols = ['criado_em', 'ultimo_contato', 'proximo_envio', 'atualizado_em'];
+                if (dateCols.includes(SORT_COL)) {
+                    va = new Date(va).getTime();
+                    vb = new Date(vb).getTime();
+                }
+                if (typeof va === 'number' && typeof vb === 'number') {
+                    return SORT_DIR === 'asc' ? va - vb : vb - va;
+                }
+                return SORT_DIR === 'asc'
+                    ? String(va).localeCompare(String(vb), 'pt-BR')
+                    : String(vb).localeCompare(String(va), 'pt-BR');
+            });
 
             const n = rows.length;
             document.getElementById('tbl-count').textContent = n + ' registro' + (n !== 1 ? 's' : '') + (n > 100 ? ' (top 100)' : '');
