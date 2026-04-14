@@ -1266,15 +1266,13 @@
                 </svg>
                 Resgate
             </div>
-            <div class="nav-item" id="nav-agendamentos" onclick="showView('agendamentos')">
+            <div class="nav-item" id="nav-interesse" onclick="showView('interesse')">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
-                    <line x1="16" y1="2" x2="16" y2="6"/>
-                    <line x1="8" y1="2" x2="8" y2="6"/>
-                    <line x1="3" y1="10" x2="21" y2="10"/>
+                    <path d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
                 </svg>
-                Agendamentos
+                Interesse
             </div>
+
             <div class="nav-item" id="nav-campanhas" onclick="showView('campanhas')">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <path d="M22 12h-4l-3 9L9 3l-3 9H2"/>
@@ -1527,13 +1525,30 @@
             </div>
         </div>
 
-        <!-- VIEW: AGENDAMENTOS -->
-        <div id="view-agendamentos" class="view" style="display:none">
-            <div class="empty" style="padding:60px">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="width:36px;height:36px;margin:0 auto 12px;display:block;opacity:.3"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-                Em breve
+        <!-- VIEW: INTERESSE -->
+        <div id="view-interesse" class="view" style="display:none">
+            <div style="margin-bottom:24px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px">
+                <div>
+                    <div class="page-title">Interesse</div>
+                    <div class="page-sub" id="interesse-sub">kanban por fase de agendamento</div>
+                </div>
+                <div style="display:flex;gap:8px;align-items:center">
+                    <select id="interesse-agente" class="fsel" onchange="renderInteresse()">
+                        <option value="">Todos os agentes</option>
+                    </select>
+                    <select id="interesse-temp" class="fsel" onchange="renderInteresse()">
+                        <option value="">Todas as temperaturas</option>
+                        <option value="quente">🔴 Quente</option>
+                        <option value="morno">🟡 Morno</option>
+                        <option value="frio">🔵 Frio</option>
+                    </select>
+                </div>
+            </div>
+            <div id="interesse-board" style="display:flex;gap:12px;overflow-x:auto;padding-bottom:16px;align-items:flex-start">
             </div>
         </div>
+
+
 
         <!-- VIEW: CAMPANHAS -->
         <div id="view-campanhas" class="view" style="display:none">
@@ -2300,6 +2315,7 @@
             const navEl = document.getElementById('nav-' + name);
             if (navEl) navEl.classList.add('active');
             if (name === 'resgate') renderKanban();
+            if (name === 'interesse') renderInteresse();
             if (name === 'campanhas') { buildCampPeriodTabs(); renderCampanhas(); }
         }
 
@@ -2402,6 +2418,98 @@
 
             document.getElementById('resgate-sub').textContent =
                 `${leads.length} lead${leads.length!==1?'s':''} ativos em resgate`;
+        }
+
+        /* ── INTERESSE KANBAN ── */
+        function renderInteresse() {
+            if (!DATA.length) return;
+
+            const agFilter   = document.getElementById('interesse-agente')?.value || '';
+            const tempFilter = document.getElementById('interesse-temp')?.value || '';
+
+            const agSel = document.getElementById('interesse-agente');
+            const prevAg = agSel?.value;
+            if (agSel) {
+                const agentes = [...new Set(DATA.map(r => r.agente_id).filter(Boolean))];
+                agSel.innerHTML = '<option value="">Todos os agentes</option>';
+                agentes.forEach(a => {
+                    agSel.innerHTML += `<option value="${a}"${prevAg===a?' selected':''}>${a}</option>`;
+                });
+            }
+
+            const FASES = [
+                { key: 'AGENDADO',       label: 'AGENDADO',       color: '#1d4ed8' },
+                { key: '5_DIAS_ANTES',   label: '5 DIAS ANTES',   color: '#0e7a4e' },
+                { key: '4_DIAS_ANTES',   label: '4 DIAS ANTES',   color: '#0e7a4e' },
+                { key: '3_DIAS_ANTES',   label: '3 DIAS ANTES',   color: '#0e7a4e' },
+                { key: '2_DIAS_ANTES',   label: '2 DIAS ANTES',   color: '#b45309' },
+                { key: '1_DIA_ANTES',    label: '1 DIA ANTES',    color: '#b91c1c' },
+                { key: 'NPS_ENVIADO',    label: 'NPS ENVIADO',    color: '#7c3aed' },
+                { key: 'NPS_RESPONDIDO', label: 'NPS RESPONDIDO', color: '#12a368' },
+            ];
+
+            let leads = DATA.filter(r => r.data_hora_agendamento != null && r.data_hora_agendamento !== '');
+            if (agFilter)   leads = leads.filter(r => r.agente_id === agFilter);
+            if (tempFilter) leads = leads.filter(r => r.temperatura === tempFilter);
+
+            const grupos = {};
+            FASES.forEach(f => grupos[f.key] = []);
+            leads.forEach(r => {
+                const fase = r.interesse_status || 'AGENDADO';
+                if (grupos[fase] !== undefined) grupos[fase].push(r);
+                else grupos['AGENDADO'].push(r);
+            });
+
+            const board = document.getElementById('interesse-board');
+            board.innerHTML = FASES.map(fase => {
+                const cards = grupos[fase.key] || [];
+                const cardsHtml = cards.length
+                    ? cards.map(r => {
+                        const tempClass = r.temperatura ? `temp-${r.temperatura}` : 'temp-frio';
+                        const tempLabel = r.temperatura || 'frio';
+                        const resumo = r.ultimo_resumo || 'Sem resumo disponível';
+                        let agData = '';
+                        if (r.data_hora_agendamento) {
+                            try {
+                                const d = new Date(r.data_hora_agendamento);
+                                agData = d.toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+                            } catch(e) { agData = r.data_hora_agendamento; }
+                        }
+                        const sessionUrl = r.sessao_id
+                            ? `https://qozt.wts.chat/chat2/sessions/${r.sessao_id}`
+                            : null;
+                        const cardOnClick = sessionUrl
+                            ? `onclick="window.open('${sessionUrl}','_blank')"`
+                            : '';
+                        return `<div class="kanban-card" ${cardOnClick} style="${sessionUrl?'cursor:pointer':''}">
+                            <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:6px">
+                                <div class="kanban-card-phone">${phone(r.telefone)}</div>
+                                <span class="temp-tag ${tempClass}" style="flex-shrink:0">${tempLabel}</span>
+                            </div>
+                            <div style="display:flex;align-items:center;justify-content:space-between;gap:6px;margin-top:3px">
+                                <div class="kanban-card-agent">${r.agente_id || '—'}</div>
+                                ${r.interesse ? `<span style="font-size:10px;font-weight:600;color:var(--blue);background:var(--blue-bg);border-radius:4px;padding:1px 6px;text-transform:uppercase;letter-spacing:.04em">${r.interesse}</span>` : ''}
+                            </div>
+                            ${agData ? `<div style="display:flex;align-items:center;gap:5px;margin:5px 0 2px">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:11px;height:11px;color:var(--green);flex-shrink:0"><path d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                                <div style="font-family:var(--mono);font-size:11px;color:var(--green);font-weight:500">${agData}</div>
+                            </div>` : ''}
+                            <div class="kanban-card-resumo" style="margin-top:4px">${resumo}</div>
+                        </div>`;
+                    }).join('')
+                    : '<div style="padding:12px;font-size:11px;color:var(--text3);text-align:center">vazio</div>';
+
+                return `<div class="kanban-col">
+                    <div class="kanban-col-header" style="border-top:3px solid ${fase.color}">
+                        <div class="kanban-col-title">${fase.label}</div>
+                        <div class="kanban-col-count">${cards.length}</div>
+                    </div>
+                    <div class="kanban-cards">${cardsHtml}</div>
+                </div>`;
+            }).join('');
+
+            document.getElementById('interesse-sub').textContent =
+                `${leads.length} lead${leads.length!==1?'s':''} com agendamento`;
         }
 
         function renderCampanhas() {
@@ -2784,6 +2892,8 @@
                 metrics(DATA); chart(DATA); agents(DATA); renderTable();
                 const viewResgate = document.getElementById('view-resgate');
                 if (viewResgate && viewResgate.style.display !== 'none') renderKanban();
+                const viewInteresse = document.getElementById('view-interesse');
+                if (viewInteresse && viewInteresse.style.display !== 'none') renderInteresse();
                 const viewCampanhas = document.getElementById('view-campanhas');
                 if (viewCampanhas && viewCampanhas.style.display !== 'none') renderCampanhas();
                 const now = new Date();
