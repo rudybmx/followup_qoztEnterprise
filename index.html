@@ -2219,14 +2219,12 @@
                 </svg>
                 Campanhas
             </div>
-            <div class="nav-item" id="nav-nps" onclick="showView('nps')">
+            <div class="nav-item" id="nav-consultas" onclick="showView('consultas')">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <circle cx="12" cy="12" r="10" />
-                    <path d="M8 14s1.5 2 4 2 4-2 4-2" />
-                    <line x1="9" y1="9" x2="9.01" y2="9" />
-                    <line x1="15" y1="9" x2="15.01" y2="9" />
+                    <path d="M8 7V3m8 4V3M3 11h18M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                    <path d="M9 15l2 2 4-4"/>
                 </svg>
-                NPS
+                Consultas
             </div>
             <div class="nav-item" id="nav-config" onclick="showView('config')">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -2627,99 +2625,114 @@
             </div>
         </div>
 
-        <!-- VIEW: NPS -->
-        <div id="view-nps" class="view" style="display:none">
+        <!-- VIEW: CONSULTAS -->
+        <div id="view-consultas" class="view" style="display:none">
             <div style="margin-bottom:18px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px">
                 <div>
-                    <div class="page-title">Satisfação de Clientes (NPS)</div>
-                    <div class="page-sub" id="nps-page-sub">Acompanhamento do Net Promoter Score em tempo real</div>
+                    <div class="page-title">Monitor de Consultas</div>
+                    <div class="page-sub" id="consultas-page-sub">Comparecimentos, faltas e reagendamentos</div>
                 </div>
+                <select id="consultas-period-sel" class="fsel" onchange="renderConsultas()" style="font-size:12px;padding:7px 13px;border-radius:8px;box-shadow:var(--shadow)">
+                    <option value="30">Últimos 30 dias</option>
+                    <option value="7">Últimos 7 dias</option>
+                    <option value="90">Últimos 90 dias</option>
+                    <option value="all">Todo histórico</option>
+                </select>
             </div>
 
-            <!-- NPS Metrics -->
+            <!-- Metrics -->
             <div class="metrics-grid">
                 <div class="metric">
-                    <div class="metric-label">NPS Geral</div>
-                    <div class="metric-value neutral" id="nps-score-val">—</div>
-                    <div class="metric-sub" id="nps-score-status">—</div>
-                    <div class="metric-line" id="nps-score-line" style="background:var(--bg3)">
-                        <div id="nps-score-fill" style="height:3px;border-radius:99px;background:var(--brand);width:0%;transition:width .5s"></div>
+                    <div class="metric-label">Compareceram</div>
+                    <div class="metric-value green" id="c-compareceu">—</div>
+                    <div class="metric-sub" id="c-taxa">taxa de comparecimento</div>
+                    <div class="metric-line" style="background:var(--green-bg)">
+                        <div id="cl-compareceu" style="height:3px;border-radius:99px;background:var(--green2);width:0%;transition:width .5s"></div>
                     </div>
                 </div>
                 <div class="metric">
-                    <div class="metric-label">Taxa de Resposta</div>
-                    <div class="metric-value blue" id="nps-response-rate">—</div>
-                    <div class="metric-sub" id="nps-response-sub">—</div>
+                    <div class="metric-label">Faltantes</div>
+                    <div class="metric-value red" id="c-faltante">—</div>
+                    <div class="metric-sub" id="c-faltante-sub">não compareceram</div>
+                    <div class="metric-line" style="background:var(--red-bg)">
+                        <div id="cl-faltante" style="height:3px;border-radius:99px;background:var(--red);width:0%;transition:width .5s"></div>
+                    </div>
                 </div>
                 <div class="metric">
-                    <div class="metric-label">Promotores</div>
-                    <div class="metric-value green" id="nps-promoters-pct">—</div>
-                    <div class="metric-sub" id="nps-promoters-sub">—</div>
+                    <div class="metric-label">Reagendaram</div>
+                    <div class="metric-value amber" id="c-reagendou">—</div>
+                    <div class="metric-sub" id="c-reagendou-sub">dos faltantes</div>
+                    <div class="metric-line" style="background:var(--amber-bg)">
+                        <div id="cl-reagendou" style="height:3px;border-radius:99px;background:var(--amber);width:0%;transition:width .5s"></div>
+                    </div>
                 </div>
                 <div class="metric">
-                    <div class="metric-label">Detratores</div>
-                    <div class="metric-value red" id="nps-detractors-pct">—</div>
-                    <div class="metric-sub" id="nps-detractors-sub">—</div>
+                    <div class="metric-label">Total de Consultas</div>
+                    <div class="metric-value neutral" id="c-total">—</div>
+                    <div class="metric-sub">no período</div>
                 </div>
             </div>
 
-            <!-- Distribution & Details -->
+            <!-- Distribuição + Por cliente -->
             <div class="row2">
                 <div class="card">
                     <div class="card-header">
-                        <div class="card-title">Distribuição de Notas</div>
-                        <div class="card-badge" id="nps-dist-total">—</div>
+                        <div class="card-title">Distribuição</div>
+                        <div class="card-badge" id="c-dist-total">—</div>
                     </div>
-                    <div class="nps-dist-bar">
-                        <div id="nps-bar-promoters" class="nps-dist-segment nps-dist-promoters" style="width: 0%"></div>
-                        <div id="nps-bar-passives" class="nps-dist-segment nps-dist-passives" style="width: 0%"></div>
-                        <div id="nps-bar-detractors" class="nps-dist-segment nps-dist-detractors" style="width: 0%"></div>
+                    <div class="nps-dist-bar" style="margin-top:8px">
+                        <div id="c-bar-compareceu" class="nps-dist-segment nps-dist-promoters" style="width:0%"></div>
+                        <div id="c-bar-reagendou" class="nps-dist-segment nps-dist-passives" style="width:0%"></div>
+                        <div id="c-bar-faltante" class="nps-dist-segment nps-dist-detractors" style="width:0%"></div>
                     </div>
-                    <div class="nps-legend">
+                    <div class="nps-legend" style="margin-top:12px">
                         <div class="nps-legend-item">
                             <span class="nps-legend-dot" style="background:var(--green2)"></span>
-                            <span>Promotores (9-10): <b id="nps-lbl-promoters">—</b></span>
+                            <span>Compareceu: <b id="c-lbl-compareceu">—</b></span>
                         </div>
                         <div class="nps-legend-item">
                             <span class="nps-legend-dot" style="background:var(--amber)"></span>
-                            <span>Passivos (7-8): <b id="nps-lbl-passives">—</b></span>
+                            <span>Reagendou: <b id="c-lbl-reagendou">—</b></span>
                         </div>
                         <div class="nps-legend-item">
                             <span class="nps-legend-dot" style="background:var(--red)"></span>
-                            <span>Detratores (0-6): <b id="nps-lbl-detractors">—</b></span>
+                            <span>Faltou e não reagendou: <b id="c-lbl-faltante">—</b></span>
                         </div>
                     </div>
                 </div>
                 <div class="card">
                     <div class="card-header">
-                        <div class="card-title">Ranking por Agente</div>
-                        <div class="card-badge" id="nps-agents-count">—</div>
+                        <div class="card-title">Por Cliente</div>
+                        <div class="card-badge" id="c-companies-count">—</div>
                     </div>
-                    <div class="agents-list" id="nps-agents-list">
-                        <div class="empty">Nenhuma resposta registrada.</div>
+                    <div class="agents-list" id="c-companies-list">
+                        <div class="empty">Nenhum dado registrado.</div>
                     </div>
                 </div>
             </div>
 
-            <!-- Feedbacks Recentes -->
-            <div class="card" style="margin-top:20px">
+            <!-- Registros recentes -->
+            <div class="card" style="margin-top:4px">
                 <div class="card-header">
-                    <div class="card-title">Feedbacks e Respostas Recentes</div>
+                    <div class="card-title">Registros Recentes</div>
+                    <div class="card-badge" id="c-records-count">—</div>
                 </div>
                 <div class="tbl-wrap">
                     <table class="nps-table">
                         <thead>
                             <tr>
+                                <th>Nome</th>
                                 <th>Telefone</th>
-                                <th>Agente</th>
-                                <th>Nota</th>
-                                <th>Feedback</th>
+                                <th>Status</th>
+                                <th>Data da Consulta</th>
+                                <th>Registrado em</th>
+                                <th>Cliente (token)</th>
                             </tr>
                         </thead>
-                        <tbody id="nps-feedback-body">
+                        <tbody id="c-records-body">
                             <tr>
-                                <td colspan="4" class="empty" style="text-align:center;padding:24px">
-                                    Nenhum feedback registrado.
+                                <td colspan="6" class="empty" style="text-align:center;padding:24px">
+                                    Nenhum registro encontrado.
                                 </td>
                             </tr>
                         </tbody>
@@ -3756,241 +3769,138 @@
             if (name === 'resgate') renderKanban();
             if (name === 'interesse') renderInteresse();
             if (name === 'campanhas') { buildCampPeriodTabs(); renderCampanhas(); }
-            if (name === 'nps') renderNPS();
+            if (name === 'consultas') renderConsultas();
             if (name === 'config') loadConfig();
         }
 
-        /* ── NPS VIEW LOGIC ── */
-        function renderNPS() {
-            if (!DATA.length) return;
+        /* ── CONSULTAS VIEW LOGIC ── */
+        let CONSULTAS_DATA = [];
 
-            // Filter leads that have NPS status
-            const npsSentLeads = DATA.filter(r => r.interesse_status === 'NPS_ENVIADO' || r.interesse_status === 'NPS_RESPONDIDO');
-            const npsRespondedLeads = DATA.filter(r => r.interesse_status === 'NPS_RESPONDIDO');
-
-            const totalSent = npsSentLeads.length;
-            const totalResponded = npsRespondedLeads.length;
-            const responseRate = totalSent > 0 ? (totalResponded / totalSent * 100) : 0;
-
-            // Generate deterministic scores for responded leads based on phone hash
-            // This ensures stability of scores per client
-            const getDeterministicScore = (phone) => {
-                let hash = 0;
-                const str = String(phone || '');
-                for (let i = 0; i < str.length; i++) {
-                    hash = str.charCodeAt(i) + ((hash << 5) - hash);
-                }
-                const scoreSeed = Math.abs(hash) % 100;
-                // Distribution: 82% promoters (9-10), 12% passives (7-8), 6% detractors (0-6)
-                if (scoreSeed < 82) {
-                    return 9 + (scoreSeed % 2); // 9 or 10
-                } else if (scoreSeed < 94) {
-                    return 7 + (scoreSeed % 2); // 7 or 8
-                } else {
-                    return scoreSeed % 7; // 0 to 6
-                }
-            };
-
-            const feedbackComments = {
-                10: ["Excelente atendimento!", "Muito atenciosos e prestativos.", "Super recomendo, nota 10!", "Melhor pós-venda que já vi.", "Muito rápido e eficiente!"],
-                9: ["Atendimento excelente.", "Muito satisfeito com a atenção.", "Muito atenciosos no contato.", "Profissional extremamente educado.", "Excelente suporte!"],
-                8: ["Bom atendimento.", "Satisfeito com o retorno.", "Tudo certo no contato.", "Atendimento ok.", "Foi bom."],
-                7: ["Razoável, demorou um pouco.", "Contato realizado.", "Ok.", "Poderia ser um pouco mais ágil.", "Atendimento aceitável."],
-                6: ["Demorou bastante para responder.", "Tive que mandar mensagem mais de uma vez.", "Suporte lento.", "Pode melhorar o atendimento.", "Demorado."],
-                5: ["Pouco retorno.", "Demora exagerada.", "Não foi muito prestativo.", "Atendimento insatisfatório.", "Atraso no contato."],
-                default: ["Precisa melhorar bastante.", "Atendimento ruim.", "Fiquei sem resposta algumas vezes.", "Suporte confuso."]
-            };
-
-            const getDeterministicFeedback = (score, phone) => {
-                let hash = 0;
-                const str = String(phone || '');
-                for (let i = 0; i < str.length; i++) {
-                    hash = str.charCodeAt(i) + ((hash << 5) - hash);
-                }
-                const idx = Math.abs(hash);
-                const list = feedbackComments[score] || feedbackComments.default;
-                return list[idx % list.length];
-            };
-
-            let promoters = 0;
-            let passives = 0;
-            let detractors = 0;
-
-            const feedbackData = npsRespondedLeads.map(r => {
-                const score = getDeterministicScore(r.telefone);
-                const feedback = getDeterministicFeedback(score, r.telefone);
-                
-                if (score >= 9) promoters++;
-                else if (score >= 7) passives++;
-                else detractors++;
-
-                return {
-                    telefone: r.telefone,
-                    agente_id: r.agente_id || '—',
-                    score: score,
-                    feedback: feedback
-                };
+        async function fetchConsultas() {
+            const days = document.getElementById('consultas-period-sel')?.value || '30';
+            let url = `${SB_URL}/rest/v1/consultas_atendimento?order=criado_em.desc&limit=500`;
+            if (COMPANY) url += `&company_id=eq.${encodeURIComponent(COMPANY)}`;
+            if (days !== 'all') {
+                const since = new Date();
+                since.setDate(since.getDate() - parseInt(days));
+                url += `&criado_em=gte.${since.toISOString()}`;
+            }
+            const r = await fetch(url, {
+                headers: { apikey: SB_KEY, Authorization: `Bearer ${SB_KEY}` }
             });
+            if (!r.ok) throw new Error('HTTP ' + r.status);
+            return r.json();
+        }
 
-            // Calculate NPS Score: % Promoters - % Detractors
-            let npsScore = 0;
-            if (totalResponded > 0) {
-                const pPct = (promoters / totalResponded) * 100;
-                const dPct = (detractors / totalResponded) * 100;
-                npsScore = Math.round(pPct - dPct);
+        async function renderConsultas() {
+            const sub = document.getElementById('consultas-page-sub');
+            if (sub) sub.textContent = 'Carregando...';
+            try {
+                CONSULTAS_DATA = await fetchConsultas();
+            } catch (e) {
+                if (sub) sub.textContent = 'Erro ao carregar: ' + e.message;
+                return;
             }
 
-            // NPS Zone
-            let npsStatus = 'Sem dados';
-            let npsColor = 'neutral';
-            let npsFillColor = '#9ca3af';
-            if (totalResponded > 0) {
-                if (npsScore >= 75) {
-                    npsStatus = 'Zona de Excelência';
-                    npsColor = 'green';
-                    npsFillColor = 'var(--green2)';
-                } else if (npsScore >= 50) {
-                    npsStatus = 'Zona de Qualidade';
-                    npsColor = 'green';
-                    npsFillColor = 'var(--green)';
-                } else if (npsScore >= 0) {
-                    npsStatus = 'Zona de Aperfeiçoamento';
-                    npsColor = 'amber';
-                    npsFillColor = 'var(--amber)';
-                } else {
-                    npsStatus = 'Zona de Crise';
-                    npsColor = 'red';
-                    npsFillColor = 'var(--red)';
-                }
+            const d = CONSULTAS_DATA;
+            const total = d.length;
+            const nComp = d.filter(r => r.status === 'compareceu').length;
+            const nFalt = d.filter(r => r.status === 'faltante').length;
+            const nReag = d.filter(r => r.status === 'reagendou').length;
+            const totalFaltantes = nFalt + nReag;
+            const taxa = total > 0 ? Math.round(nComp / total * 100) : 0;
+            const taxaReag = totalFaltantes > 0 ? Math.round(nReag / totalFaltantes * 100) : 0;
+
+            /* métricas */
+            document.getElementById('c-compareceu').textContent = nComp;
+            document.getElementById('c-taxa').textContent = `${taxa}% de comparecimento`;
+            document.getElementById('c-faltante').textContent = nFalt;
+            document.getElementById('c-faltante-sub').textContent = `não compareceram e não reagendaram`;
+            document.getElementById('c-reagendou').textContent = nReag;
+            document.getElementById('c-reagendou-sub').textContent = totalFaltantes > 0 ? `${taxaReag}% dos faltantes reagendaram` : 'dos faltantes reagendaram';
+            document.getElementById('c-total').textContent = total;
+
+            /* barras de progresso */
+            if (total > 0) {
+                document.getElementById('cl-compareceu').style.width = Math.round(nComp / total * 100) + '%';
+                document.getElementById('cl-faltante').style.width = Math.round(nFalt / total * 100) + '%';
+                document.getElementById('cl-reagendou').style.width = Math.round(nReag / total * 100) + '%';
             }
 
-            // Update UI elements
-            const npsScoreVal = document.getElementById('nps-score-val');
-            if (npsScoreVal) {
-                npsScoreVal.textContent = totalResponded > 0 ? (npsScore > 0 ? `+${npsScore}` : npsScore) : '—';
-                npsScoreVal.className = `metric-value ${npsColor}`;
-            }
-            const npsScoreStatus = document.getElementById('nps-score-status');
-            if (npsScoreStatus) npsScoreStatus.textContent = npsStatus;
-            
-            // Score progress line
-            const fillWidth = totalResponded > 0 ? Math.max(0, Math.min(100, Math.round((npsScore + 100) / 2))) : 0; // map -100..100 to 0..100
-            const scoreFill = document.getElementById('nps-score-fill');
-            if (scoreFill) {
-                scoreFill.style.width = `${fillWidth}%`;
-                scoreFill.style.backgroundColor = npsFillColor;
-            }
+            /* distribuição */
+            document.getElementById('c-dist-total').textContent = `${total} consulta${total !== 1 ? 's' : ''}`;
+            const cPct = total > 0 ? nComp / total * 100 : 0;
+            const rPct = total > 0 ? nReag / total * 100 : 0;
+            const fPct = total > 0 ? nFalt / total * 100 : 0;
+            document.getElementById('c-bar-compareceu').style.width = cPct + '%';
+            document.getElementById('c-bar-reagendou').style.width = rPct + '%';
+            document.getElementById('c-bar-faltante').style.width = fPct + '%';
+            document.getElementById('c-lbl-compareceu').textContent = `${nComp} (${cPct.toFixed(0)}%)`;
+            document.getElementById('c-lbl-reagendou').textContent = `${nReag} (${rPct.toFixed(0)}%)`;
+            document.getElementById('c-lbl-faltante').textContent = `${nFalt} (${fPct.toFixed(0)}%)`;
 
-            // Response Rate
-            const npsResponseRate = document.getElementById('nps-response-rate');
-            if (npsResponseRate) npsResponseRate.textContent = `${responseRate.toFixed(1)}%`;
-            const npsResponseSub = document.getElementById('nps-response-sub');
-            if (npsResponseSub) npsResponseSub.textContent = `${totalResponded} respostas / ${totalSent} enviados`;
-
-            // Promoters & Detractors
-            const pPctVal = totalResponded > 0 ? (promoters / totalResponded * 100) : 0;
-            const dPctVal = totalResponded > 0 ? (detractors / totalResponded * 100) : 0;
-            const passPctVal = totalResponded > 0 ? (passives / totalResponded * 100) : 0;
-
-            const npsPromotersPct = document.getElementById('nps-promoters-pct');
-            if (npsPromotersPct) npsPromotersPct.textContent = totalResponded > 0 ? `${pPctVal.toFixed(0)}%` : '—';
-            const npsPromotersSub = document.getElementById('nps-promoters-sub');
-            if (npsPromotersSub) npsPromotersSub.textContent = `${promoters} promotores`;
-
-            const npsDetractorsPct = document.getElementById('nps-detractors-pct');
-            if (npsDetractorsPct) npsDetractorsPct.textContent = totalResponded > 0 ? `${dPctVal.toFixed(0)}%` : '—';
-            const npsDetractorsSub = document.getElementById('nps-detractors-sub');
-            if (npsDetractorsSub) npsDetractorsSub.textContent = `${detractors} detratores`;
-
-            // Distribution bar
-            const npsDistTotal = document.getElementById('nps-dist-total');
-            if (npsDistTotal) npsDistTotal.textContent = `${totalResponded} avaliações`;
-            const barPromoters = document.getElementById('nps-bar-promoters');
-            if (barPromoters) barPromoters.style.width = `${pPctVal}%`;
-            const barPassives = document.getElementById('nps-bar-passives');
-            if (barPassives) barPassives.style.width = `${passPctVal}%`;
-            const barDetractors = document.getElementById('nps-bar-detractors');
-            if (barDetractors) barDetractors.style.width = `${dPctVal}%`;
-
-            const lblPromoters = document.getElementById('nps-lbl-promoters');
-            if (lblPromoters) lblPromoters.textContent = `${promoters} (${pPctVal.toFixed(0)}%)`;
-            const lblPassives = document.getElementById('nps-lbl-passives');
-            if (lblPassives) lblPassives.textContent = `${passives} (${passPctVal.toFixed(0)}%)`;
-            const lblDetractors = document.getElementById('nps-lbl-detractors');
-            if (lblDetractors) lblDetractors.textContent = `${detractors} (${dPctVal.toFixed(0)}%)`;
-
-            // Agent Ranking
-            const agentStats = {};
-            feedbackData.forEach(f => {
-                if (!agentStats[f.agente_id]) {
-                    agentStats[f.agente_id] = { total: 0, promoters: 0, detractors: 0, sum: 0 };
-                }
-                agentStats[f.agente_id].total++;
-                agentStats[f.agente_id].sum += f.score;
-                if (f.score >= 9) agentStats[f.agente_id].promoters++;
-                else if (f.score <= 6) agentStats[f.agente_id].detractors++;
+            /* por cliente */
+            const companies = {};
+            d.forEach(r => {
+                const key = r.token_crm || '(sem token)';
+                if (!companies[key]) companies[key] = { compareceu: 0, faltante: 0, reagendou: 0, total: 0 };
+                companies[key][r.status] = (companies[key][r.status] || 0) + 1;
+                companies[key].total++;
             });
-
-            const agentRanking = Object.entries(agentStats).map(([agente, stat]) => {
-                const avg = stat.sum / stat.total;
-                const scoreNPS = Math.round(((stat.promoters - stat.detractors) / stat.total) * 100);
-                return { agente, total: stat.total, avg, nps: scoreNPS };
-            }).sort((a, b) => b.nps - a.nps);
-
-            const npsAgentsCount = document.getElementById('nps-agents-count');
-            if (npsAgentsCount) npsAgentsCount.textContent = `${agentRanking.length} agentes`;
-
-            const npsAgentsList = document.getElementById('nps-agents-list');
-            if (npsAgentsList) {
-                if (agentRanking.length === 0) {
-                    npsAgentsList.innerHTML = '<div class="empty">Nenhum agente avaliado.</div>';
-                } else {
-                    npsAgentsList.innerHTML = agentRanking.map(a => {
-                        const avgScore = a.avg.toFixed(1);
-                        const npsColorClass = a.nps >= 75 ? 'c-green' : a.nps >= 50 ? 'c-green' : a.nps >= 0 ? 'c-amber' : 'c-red';
-                        const fillPct = Math.max(0, Math.min(100, Math.round((a.nps + 100) / 2)));
-                        const fillBg = a.nps >= 75 ? 'var(--green2)' : a.nps >= 0 ? 'var(--amber)' : 'var(--red)';
-                        return `<div class="agent-row">
-                            <div class="agent-av">${a.agente.slice(0, 2).toUpperCase()}</div>
-                            <div style="flex:1;min-width:0">
-                                <div class="agent-name">${a.agente}</div>
-                                <div class="agent-meta">
-                                    <span class="agent-stat">Média: <b>${avgScore}</b></span>
-                                    <span class="agent-stat">Respostas: <b>${a.total}</b></span>
-                                </div>
+            const companiesArr = Object.entries(companies).sort((a, b) => b[1].total - a[1].total);
+            document.getElementById('c-companies-count').textContent = `${companiesArr.length} cliente${companiesArr.length !== 1 ? 's' : ''}`;
+            const list = document.getElementById('c-companies-list');
+            if (!companiesArr.length) {
+                list.innerHTML = '<div class="empty">Nenhum cliente com dados.</div>';
+            } else {
+                list.innerHTML = companiesArr.map(([token, s]) => {
+                    const taxaC = s.total > 0 ? Math.round(s.compareceu / s.total * 100) : 0;
+                    const short = token.length > 22 ? token.slice(0, 10) + '…' + token.slice(-6) : token;
+                    const fillBg = taxaC >= 70 ? 'var(--green2)' : taxaC >= 50 ? 'var(--amber)' : 'var(--red)';
+                    return `<div class="agent-row">
+                        <div class="agent-av" style="background:var(--blue-bg);border-color:rgba(37,99,235,.22);color:var(--blue);font-size:9px">${taxaC}%</div>
+                        <div style="flex:1;min-width:0">
+                            <div class="agent-name" title="${token}">${short}</div>
+                            <div class="agent-meta">
+                                <span class="agent-stat" style="color:var(--green)">✓ <b>${s.compareceu || 0}</b></span>
+                                <span class="agent-stat" style="color:var(--red)">✗ <b>${s.faltante || 0}</b></span>
+                                <span class="agent-stat" style="color:var(--amber)">↺ <b>${s.reagendou || 0}</b></span>
                             </div>
-                            <div class="mini-prog-wrap">
-                                <div class="mini-prog">
-                                    <div class="mini-prog-fill" style="width:${fillPct}%; background:${fillBg}"></div>
-                                </div>
-                                <div class="mini-pct ${npsColorClass}">NPS: ${a.nps > 0 ? '+' : ''}${a.nps}</div>
-                            </div>
-                        </div>`;
-                    }).join('');
-                }
+                        </div>
+                        <div class="mini-prog-wrap">
+                            <div class="mini-prog"><div class="mini-prog-fill" style="width:${taxaC}%;background:${fillBg}"></div></div>
+                            <div class="mini-pct">${s.total} total</div>
+                        </div>
+                    </div>`;
+                }).join('');
             }
 
-            // Render Feedbacks Recentes Table
-            const tbody = document.getElementById('nps-feedback-body');
-            if (tbody) {
-                if (feedbackData.length === 0) {
-                    tbody.innerHTML = `<tr>
-                        <td colspan="4" class="empty" style="text-align:center;padding:24px">
-                            Nenhuma resposta registrada para este período.
-                        </td>
+            /* tabela de registros */
+            document.getElementById('c-records-count').textContent = `${Math.min(d.length, 100)} de ${d.length}`;
+            const tbody = document.getElementById('c-records-body');
+            if (!d.length) {
+                tbody.innerHTML = `<tr><td colspan="6" class="empty" style="text-align:center;padding:24px">Nenhum registro encontrado.</td></tr>`;
+            } else {
+                tbody.innerHTML = d.slice(0, 100).map(r => {
+                    const pill = r.status === 'compareceu'
+                        ? `<span style="background:var(--green-bg);color:var(--green);border:1px solid var(--green-bd);padding:2px 8px;border-radius:99px;font-size:10px;font-weight:700">✓ compareceu</span>`
+                        : r.status === 'reagendou'
+                        ? `<span style="background:var(--amber-bg);color:var(--amber);border:1px solid rgba(217,119,6,.22);padding:2px 8px;border-radius:99px;font-size:10px;font-weight:700">↺ reagendou</span>`
+                        : `<span style="background:var(--red-bg);color:var(--red);border:1px solid rgba(220,38,38,.22);padding:2px 8px;border-radius:99px;font-size:10px;font-weight:700">✗ faltante</span>`;
+                    const shortTok = r.token_crm ? r.token_crm.slice(0, 10) + '…' : '—';
+                    return `<tr>
+                        <td style="font-weight:500">${r.nome || '—'}</td>
+                        <td class="mono">${phone(r.telefone) || '—'}</td>
+                        <td>${pill}</td>
+                        <td class="mono">${fmtDate(r.data_hora_consulta)}</td>
+                        <td class="mono">${fmtDate(r.criado_em)}</td>
+                        <td class="mono" title="${r.token_crm || ''}" style="font-size:10px;color:var(--text3)">${shortTok}</td>
                     </tr>`;
-                } else {
-                    tbody.innerHTML = feedbackData.map(f => {
-                        const badgeClass = f.score >= 9 ? 'nps-badge-promoter' : f.score >= 7 ? 'nps-badge-passive' : 'nps-badge-detractor';
-                        return `<tr>
-                            <td class="mono" style="font-weight: 500">${phone(f.telefone)}</td>
-                            <td><span style="font-size:11px;font-weight:600;color:var(--text)">${f.agente_id}</span></td>
-                            <td><span class="nps-badge ${badgeClass}">${f.score}</span></td>
-                            <td class="nps-comment">"${f.feedback}"</td>
-                        </tr>`;
-                    }).join('');
-                }
+                }).join('');
             }
+
+            const periodLabel = document.getElementById('consultas-period-sel')?.selectedOptions[0]?.textContent || '';
+            if (sub) sub.textContent = `${total} consulta${total !== 1 ? 's' : ''} · ${periodLabel}`;
         }
 
         /* ── KANBAN ── */
@@ -4596,8 +4506,8 @@
                 if (viewInteresse && viewInteresse.style.display !== 'none') renderInteresse();
                 const viewCampanhas = document.getElementById('view-campanhas');
                 if (viewCampanhas && viewCampanhas.style.display !== 'none') renderCampanhas();
-                const viewNps = document.getElementById('view-nps');
-                if (viewNps && viewNps.style.display !== 'none') renderNPS();
+                const viewConsultas = document.getElementById('view-consultas');
+                if (viewConsultas && viewConsultas.style.display !== 'none') renderConsultas();
                 const now = new Date();
                 document.getElementById('last-upd').textContent = `atualizado ${now.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}`;
                 const periodLabel = document.getElementById('period-sel')?.selectedOptions[0]?.textContent || '';
