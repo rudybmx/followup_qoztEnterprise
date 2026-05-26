@@ -1661,6 +1661,7 @@
             border: 1px solid rgba(180, 83, 9, .2);
         }
 
+
         .cfg-inline-sel {
             width: 100%;
             padding: 5px 8px;
@@ -2775,7 +2776,14 @@
 
             <!-- SEÇÃO: AGENTES -->
             <div id="cfg-section-agentes">
-                <div style="display:flex;justify-content:flex-end;margin-bottom:14px">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+                    <button class="mbtn mbtn-primary" id="btn-nova-clinica" onclick="openNewCfgModal()" style="font-size:12px;display:flex;align-items:center;gap:6px">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                            style="width:13px;height:13px">
+                            <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+                        </svg>
+                        Nova Clínica
+                    </button>
                     <button class="mbtn mbtn-ghost" onclick="loadConfig()" style="font-size:12px">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
                             style="width:13px;height:13px;display:inline;vertical-align:middle;margin-right:4px">
@@ -2884,6 +2892,7 @@
                             <option value="CONSULTA">CONSULTA</option>
                             <option value="COTACAO">COTAÇÃO</option>
                             <option value="AGENDAMENTO">AGENDAMENTO</option>
+                            <option value="REENGAJAMENTO">REENGAJAMENTO</option>
                         </select>
                     </div>
                     <div class="cfg-modal-field">
@@ -2915,6 +2924,14 @@
                         <label class="cfg-dia-cb"><input type="checkbox" value="sexta">Sex</label>
                         <label class="cfg-dia-cb"><input type="checkbox" value="sabado">Sáb</label>
                     </div>
+                </div>
+
+                <div class="cfg-modal-field">
+                    <label class="cfg-modal-label">Departamentos bloqueados (não faz followup nesses times)</label>
+                    <textarea class="cfg-modal-textarea" id="cfg-modal-deptos" rows="3"
+                        placeholder="Cole um department_id por linha. Ex:&#10;5652436f-a965-4368-990a-1dd3029ab3e1&#10;outro-uuid-aqui"
+                        style="font-family:var(--mono);font-size:11px;resize:vertical"></textarea>
+                    <div style="font-size:11px;color:var(--text3);margin-top:4px">Um ID por linha. Leads nesses departamentos são ignorados pelo followup.</div>
                 </div>
 
                 <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:18px">
@@ -2988,6 +3005,107 @@
                     <button class="mbtn mbtn-ghost"
                         onclick="document.getElementById('lead-modal').classList.remove('open')">Cancelar</button>
                     <button class="mbtn mbtn-primary" onclick="saveLeadModal()">Salvar</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- MODAL: NOVA CLÍNICA (protegido por senha) -->
+        <div class="overlay" id="new-cfg-modal" onclick="if(event.target===this)closeNewCfgModal()">
+            <div class="modal" style="max-width:520px;width:95vw">
+                <div class="modal-title" style="margin-bottom:16px">Nova Clínica / Agente</div>
+
+                <!-- LOCK -->
+                <div id="new-cfg-lock">
+                    <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--text3)" stroke-width="2">
+                            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                            <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                        </svg>
+                        <span style="font-size:12px;color:var(--text3)">Ação restrita — confirme a senha de administrador</span>
+                    </div>
+                    <input class="cfg-modal-inp" id="new-cfg-senha" type="password" placeholder="Senha de administrador…"
+                        onkeydown="if(event.key==='Enter')checkNewCfgSenha()">
+                    <div style="font-size:11px;color:var(--red);margin-top:6px;display:none" id="new-cfg-senha-err">Senha incorreta</div>
+                    <label style="display:flex;align-items:center;gap:7px;margin-top:10px;cursor:pointer;width:fit-content">
+                        <input type="checkbox" id="new-cfg-lembrar" style="width:14px;height:14px;accent-color:var(--brand);cursor:pointer">
+                        <span style="font-size:11px;color:var(--text3)">Lembrar senha neste dispositivo</span>
+                    </label>
+                    <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:14px">
+                        <button class="mbtn mbtn-ghost" onclick="closeNewCfgModal()">Cancelar</button>
+                        <button class="mbtn mbtn-primary" onclick="checkNewCfgSenha()">Desbloquear</button>
+                    </div>
+                </div>
+
+                <!-- FORMULÁRIO (oculto até senha correta) -->
+                <div id="new-cfg-form" style="display:none">
+                    <div class="cfg-modal-field" style="margin-bottom:12px">
+                        <label class="cfg-modal-label">ID do Agente <span style="color:var(--red)">*</span></label>
+                        <input class="cfg-modal-inp" id="new-cfg-agente-id" placeholder="Ex: Odontologia Tuler - Agente CRC">
+                        <div style="font-size:10px;color:var(--text3);margin-top:4px">Deve ser idêntico ao <code>agente_id</code> usado no N8N</div>
+                    </div>
+                    <div class="cfg-modal-field" style="margin-bottom:12px">
+                        <label class="cfg-modal-label">Nome de exibição <span style="color:var(--red)">*</span></label>
+                        <input class="cfg-modal-inp" id="new-cfg-nome" placeholder="Ex: Clínica Odontologia Tuler — CRC">
+                    </div>
+                    <div class="cfg-modal-field" style="margin-bottom:12px">
+                        <label class="cfg-modal-label">Contexto do Agente (usado pelo LLM no follow-up)</label>
+                        <textarea class="cfg-modal-inp" id="new-cfg-contexto" rows="4" style="resize:vertical;line-height:1.5"
+                            placeholder="Descreva quem é o agente, sua especialidade e como deve se comunicar no follow-up…"></textarea>
+                    </div>
+                    <div class="cfg-modal-row2" style="margin-bottom:12px">
+                        <div class="cfg-modal-field">
+                            <label class="cfg-modal-label">Tipo de ciclo</label>
+                            <select class="cfg-modal-inp" id="new-cfg-tipo">
+                                <option value="CONSULTA">CONSULTA</option>
+                                <option value="COTACAO">COTAÇÃO</option>
+                                <option value="AGENDAMENTO">AGENDAMENTO</option>
+                                <option value="REENGAJAMENTO">REENGAJAMENTO</option>
+                            </select>
+                        </div>
+                        <div class="cfg-modal-field">
+                            <label class="cfg-modal-label">Intervalo (horas)</label>
+                            <input type="number" class="cfg-modal-inp" id="new-cfg-intervalo" value="24" min="1" max="720">
+                        </div>
+                    </div>
+                    <div class="cfg-modal-row2" style="margin-bottom:12px">
+                        <div class="cfg-modal-field">
+                            <label class="cfg-modal-label">Horário de envio</label>
+                            <input type="time" class="cfg-modal-inp" id="new-cfg-horario" value="09:00">
+                        </div>
+                        <div class="cfg-modal-field">
+                            <label class="cfg-modal-label">Máx. tentativas</label>
+                            <input type="number" class="cfg-modal-inp" id="new-cfg-max" value="8" min="1" max="30">
+                        </div>
+                    </div>
+                    <div class="cfg-modal-field" style="margin-bottom:12px">
+                        <label class="cfg-modal-label">Workflow ID (N8N)</label>
+                        <input class="cfg-modal-inp" id="new-cfg-workflow" placeholder="Ex: 7tG8qVcESCWC5ssD">
+                    </div>
+                    <div class="cfg-modal-field" style="margin-bottom:12px">
+                        <label class="cfg-modal-label">Dias bloqueados (não envia nesses dias)</label>
+                        <div class="cfg-dias-checks" id="new-cfg-dias">
+                            <label class="cfg-dia-cb"><input type="checkbox" value="domingo" checked>Dom</label>
+                            <label class="cfg-dia-cb"><input type="checkbox" value="segunda">Seg</label>
+                            <label class="cfg-dia-cb"><input type="checkbox" value="terca">Ter</label>
+                            <label class="cfg-dia-cb"><input type="checkbox" value="quarta">Qua</label>
+                            <label class="cfg-dia-cb"><input type="checkbox" value="quinta">Qui</label>
+                            <label class="cfg-dia-cb"><input type="checkbox" value="sexta">Sex</label>
+                            <label class="cfg-dia-cb"><input type="checkbox" value="sabado" checked>Sáb</label>
+                        </div>
+                    </div>
+                    <div class="cfg-modal-field" style="margin-bottom:14px">
+                        <label class="cfg-modal-label">Departamentos bloqueados (não faz followup nesses times)</label>
+                        <textarea class="cfg-modal-textarea" id="new-cfg-deptos" rows="3"
+                            placeholder="Cole um department_id por linha. Ex:&#10;5652436f-a965-4368-990a-1dd3029ab3e1&#10;outro-uuid-aqui"
+                            style="font-family:var(--mono);font-size:11px;resize:vertical"></textarea>
+                        <div style="font-size:11px;color:var(--text3);margin-top:4px">Um ID por linha. Leads nesses departamentos são ignorados pelo followup.</div>
+                    </div>
+                    <div id="new-cfg-feedback" style="display:none;font-size:12px;color:var(--green);margin-bottom:8px">✓ Clínica criada com sucesso!</div>
+                    <div id="new-cfg-error" style="display:none;font-size:12px;color:var(--red);margin-bottom:8px"></div>
+                    <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:4px">
+                        <button class="mbtn mbtn-ghost" onclick="closeNewCfgModal()">Cancelar</button>
+                        <button class="mbtn mbtn-primary" id="new-cfg-save-btn" onclick="saveNewCfgModal()">Criar Clínica</button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -3136,7 +3254,7 @@
         let DATA = [], FILTER = 'todos', PROX_FILTER = 'all', COMPANY = '', MAX_TENT = 8, CAMP_LEADS_MAP = {}, CAMP_PERIOD = 'all', SORT_COL = 'criado_em', SORT_DIR = 'desc';
 
         /* ── SENHA ── */
-        const SENHA_CORRETA = 'Qozt@102030*';
+        const SENHA_CORRETA = 'qozt-adm-3e4b7c8d-f9a1-master-2026';
         function checkSenha() {
             const v = document.getElementById('senha-inp').value;
             const err = document.getElementById('senha-err');
@@ -4476,7 +4594,7 @@
                 const batch = uniquePhones.slice(i, i + batchSize);
                 const phonesStr = batch.map(t => `"${t}"`).join(',');
                 try {
-                    const r = await fetch(`${SB_URL}/rest/v1/followup_state?select=telefone,session_id&telefone=in.(${phonesStr})`, {
+                    const r = await fetch(`${SB_URL}/rest/v1/followup_state?select=telefone,sessao_id&telefone=in.(${phonesStr})`, {
                         headers: { apikey: SB_KEY, Authorization: `Bearer ${SB_KEY}` }
                     });
                     if (r.ok) {
@@ -4534,11 +4652,34 @@
             loading.style.display = 'block';
             loading.textContent = 'Carregando…';
             list.style.display = 'none';
+
+            // Oculta "Nova Clínica" para clientes (apenas admin sem company vê o botão)
+            const btnNova = document.getElementById('btn-nova-clinica');
+            if (btnNova) btnNova.style.display = COMPANY ? 'none' : '';
+
             try {
-                const r = await fetch(
-                    `${SB_URL}/rest/v1/followup_config?order=nome_display.asc`,
-                    { headers: { apikey: SB_KEY, Authorization: `Bearer ${SB_KEY}` } }
-                );
+                let url = `${SB_URL}/rest/v1/followup_config?order=nome_display.asc`;
+
+                if (COMPANY) {
+                    // Busca os agente_ids vinculados ao company_id desta clínica
+                    const stateR = await fetch(
+                        `${SB_URL}/rest/v1/followup_state?select=agente_id&company_id=eq.${encodeURIComponent(COMPANY)}`,
+                        { headers: { apikey: SB_KEY, Authorization: `Bearer ${SB_KEY}` } }
+                    );
+                    if (!stateR.ok) throw new Error(`HTTP ${stateR.status}`);
+                    const stateRows = await stateR.json();
+                    const ids = [...new Set(stateRows.map(r => r.agente_id).filter(Boolean))];
+                    if (!ids.length) {
+                        CFG_DATA = [];
+                        renderConfig();
+                        loading.style.display = 'none';
+                        list.style.display = 'flex';
+                        return;
+                    }
+                    url += `&agente_id=in.(${ids.join(',')})`;
+                }
+
+                const r = await fetch(url, { headers: { apikey: SB_KEY, Authorization: `Bearer ${SB_KEY}` } });
                 if (!r.ok) throw new Error(`HTTP ${r.status}`);
                 CFG_DATA = await r.json();
                 renderConfig();
@@ -4550,7 +4691,7 @@
         }
 
         const DIA_LABELS = { domingo: 'Dom', segunda: 'Seg', terca: 'Ter', quarta: 'Qua', quinta: 'Qui', sexta: 'Sex', sabado: 'Sáb' };
-        const TIPO_CLASSES = { CONSULTA: 'cfg-ciclo-consulta', COTACAO: 'cfg-ciclo-cotacao', AGENDAMENTO: 'cfg-ciclo-agendamento' };
+        const TIPO_CLASSES = { CONSULTA: 'cfg-ciclo-consulta', COTACAO: 'cfg-ciclo-cotacao', AGENDAMENTO: 'cfg-ciclo-agendamento', REENGAJAMENTO: 'cfg-ciclo-reeng' };
 
         function renderConfig() {
             const list = document.getElementById('cfg-list');
@@ -4615,6 +4756,7 @@
             document.querySelectorAll('#cfg-modal .cfg-dia-cb input').forEach(cb => {
                 cb.checked = diasAtivos.includes(cb.value);
             });
+            document.getElementById('cfg-modal-deptos').value = (c.departamentos_bloqueados || []).join('\n');
             document.getElementById('cfg-modal').classList.add('open');
         }
 
@@ -4622,6 +4764,8 @@
             const agente_id = document.getElementById('cfg-modal-agente-id').value;
             const dias = Array.from(document.querySelectorAll('#cfg-modal .cfg-dia-cb input'))
                 .filter(cb => cb.checked).map(cb => cb.value);
+            const deptos = document.getElementById('cfg-modal-deptos').value
+                .split('\n').map(s => s.trim()).filter(Boolean);
             const payload = {
                 nome_display: document.getElementById('cfg-modal-nome').value.trim(),
                 contexto: document.getElementById('cfg-modal-contexto').value.trim(),
@@ -4629,7 +4773,8 @@
                 intervalo_horas: parseInt(document.getElementById('cfg-modal-intervalo').value) || 24,
                 horario_envio: document.getElementById('cfg-modal-horario').value || '09:00',
                 max_tentativas: parseInt(document.getElementById('cfg-modal-max').value) || 8,
-                dias_bloqueados: dias
+                dias_bloqueados: dias,
+                departamentos_bloqueados: deptos
             };
             const ok = await patchConfig(agente_id, payload);
             if (ok) {
@@ -4666,6 +4811,131 @@
             }
         }
 
+        /* ─── NOVA CLÍNICA ─── */
+        function openNewCfgModal() {
+            // reset lock
+            document.getElementById('new-cfg-lock').style.display = 'block';
+            document.getElementById('new-cfg-form').style.display = 'none';
+            document.getElementById('new-cfg-senha').value = '';
+            document.getElementById('new-cfg-senha-err').style.display = 'none';
+            // reset form
+            ['new-cfg-agente-id','new-cfg-nome','new-cfg-contexto','new-cfg-workflow','new-cfg-deptos'].forEach(id => {
+                document.getElementById(id).value = '';
+            });
+            document.getElementById('new-cfg-tipo').value = 'CONSULTA';
+            document.getElementById('new-cfg-intervalo').value = '24';
+            document.getElementById('new-cfg-horario').value = '09:00';
+            document.getElementById('new-cfg-max').value = '8';
+            document.querySelectorAll('#new-cfg-dias input').forEach(cb => {
+                cb.checked = cb.value === 'sabado' || cb.value === 'domingo';
+            });
+            document.getElementById('new-cfg-feedback').style.display = 'none';
+            document.getElementById('new-cfg-error').style.display = 'none';
+            document.getElementById('new-cfg-modal').classList.add('open');
+
+            // Auto-desbloqueia se senha salva
+            const senhaSalva = localStorage.getItem('qozt_adm_senha');
+            if (senhaSalva && senhaSalva === SENHA_CORRETA) {
+                document.getElementById('new-cfg-lock').style.display = 'none';
+                document.getElementById('new-cfg-form').style.display = 'block';
+                document.getElementById('new-cfg-lembrar').checked = true;
+                setTimeout(() => document.getElementById('new-cfg-agente-id').focus(), 100);
+            } else {
+                setTimeout(() => document.getElementById('new-cfg-senha').focus(), 100);
+            }
+        }
+
+        function closeNewCfgModal() {
+            document.getElementById('new-cfg-modal').classList.remove('open');
+        }
+
+        function checkNewCfgSenha() {
+            const v = document.getElementById('new-cfg-senha').value;
+            const err = document.getElementById('new-cfg-senha-err');
+            if (v === SENHA_CORRETA) {
+                if (document.getElementById('new-cfg-lembrar').checked) {
+                    localStorage.setItem('qozt_adm_senha', v);
+                } else {
+                    localStorage.removeItem('qozt_adm_senha');
+                }
+                document.getElementById('new-cfg-lock').style.display = 'none';
+                document.getElementById('new-cfg-form').style.display = 'block';
+                document.getElementById('new-cfg-senha').value = '';
+                err.style.display = 'none';
+                setTimeout(() => document.getElementById('new-cfg-agente-id').focus(), 100);
+            } else {
+                err.style.display = 'block';
+                document.getElementById('new-cfg-senha').value = '';
+                document.getElementById('new-cfg-senha').focus();
+            }
+        }
+
+        async function saveNewCfgModal() {
+            const agente_id = document.getElementById('new-cfg-agente-id').value.trim();
+            const nome_display = document.getElementById('new-cfg-nome').value.trim();
+            const errEl = document.getElementById('new-cfg-error');
+            const feedEl = document.getElementById('new-cfg-feedback');
+            const saveBtn = document.getElementById('new-cfg-save-btn');
+
+            errEl.style.display = 'none';
+            feedEl.style.display = 'none';
+
+            if (!agente_id) { errEl.textContent = 'ID do Agente é obrigatório.'; errEl.style.display = 'block'; return; }
+            if (!nome_display) { errEl.textContent = 'Nome de exibição é obrigatório.'; errEl.style.display = 'block'; return; }
+
+            const dias = Array.from(document.querySelectorAll('#new-cfg-dias input'))
+                .filter(cb => cb.checked).map(cb => cb.value);
+
+            const deptos = document.getElementById('new-cfg-deptos').value
+                .split('\n').map(s => s.trim()).filter(Boolean);
+
+            const payload = {
+                agente_id,
+                nome_display,
+                contexto: document.getElementById('new-cfg-contexto').value.trim() || null,
+                tipo_ciclo_padrao: document.getElementById('new-cfg-tipo').value,
+                intervalo_horas: parseInt(document.getElementById('new-cfg-intervalo').value) || 24,
+                horario_envio: document.getElementById('new-cfg-horario').value || '09:00',
+                max_tentativas: parseInt(document.getElementById('new-cfg-max').value) || 8,
+                workflow_id: document.getElementById('new-cfg-workflow').value.trim() || null,
+                dias_bloqueados: dias,
+                departamentos_bloqueados: deptos,
+                ativo: true
+            };
+
+            saveBtn.disabled = true;
+            saveBtn.textContent = 'Salvando…';
+            try {
+                const r = await fetch(`${SB_URL}/rest/v1/followup_config`, {
+                    method: 'POST',
+                    headers: {
+                        apikey: SB_KEY,
+                        Authorization: `Bearer ${SB_KEY}`,
+                        'Content-Type': 'application/json',
+                        Prefer: 'return=minimal'
+                    },
+                    body: JSON.stringify(payload)
+                });
+                if (!r.ok) {
+                    const msg = await r.text();
+                    throw new Error(msg);
+                }
+                feedEl.style.display = 'block';
+                saveBtn.textContent = 'Criar Clínica';
+                saveBtn.disabled = false;
+                // recarrega lista e fecha após 1.2s
+                await loadConfig();
+                setTimeout(() => closeNewCfgModal(), 1200);
+            } catch (e) {
+                let msg = e.message;
+                if (msg.includes('duplicate') || msg.includes('unique')) msg = 'Já existe uma config com esse ID de agente.';
+                errEl.textContent = 'Erro: ' + msg;
+                errEl.style.display = 'block';
+                saveBtn.textContent = 'Criar Clínica';
+                saveBtn.disabled = false;
+            }
+        }
+
         function showCfgFeedback() {
             const el = document.getElementById('cfg-save-feedback');
             if (!el) return;
@@ -4680,6 +4950,7 @@
                 document.getElementById('cfg-section-' + t).style.display = t === name ? 'block' : 'none';
                 document.getElementById('cfgtab-' + t).classList.toggle('active', t === name);
             });
+            if (name === 'agentes') loadConfig();
             if (name === 'leads') loadLeads();
         }
 
@@ -4696,8 +4967,9 @@
             const agente = document.getElementById('leads-agente')?.value || '';
 
             try {
-                const cols = 'telefone,agente_id,ativo,tentativa,status_fechamento,proximo_envio,ultimo_contato,criado_em,intervalo_horas,horario_envio,dias_bloqueados';
+                const cols = 'telefone,agente_id,ativo,tentativa,status_fechamento,proximo_envio,ultimo_contato,criado_em,intervalo_horas,horario_envio';
                 let url = `${SB_URL}/rest/v1/followup_state?order=criado_em.desc&limit=500&select=${cols}`;
+                if (COMPANY) url += `&company_id=eq.${encodeURIComponent(COMPANY)}`;
                 if (agente) url += `&agente_id=eq.${encodeURIComponent(agente)}`;
                 const r = await fetch(url, {
                     headers: { apikey: SB_KEY, Authorization: `Bearer ${SB_KEY}` }
@@ -4845,8 +5117,7 @@
             const payload = {
                 ativo,
                 intervalo_horas: intervalo ? parseInt(intervalo) : null,
-                horario_envio: horario || null,
-                dias_bloqueados: dias
+                horario_envio: horario || null
             };
             const ok = await patchLead(telefone, agente_id, payload);
             if (ok) {
